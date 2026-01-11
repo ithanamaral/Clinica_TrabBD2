@@ -1,3 +1,4 @@
+const Paciente = require('../../models/PacienteModel');
 const { getDb } = require('../../database');
 const { ObjectId } = require('mongodb');
 
@@ -5,13 +6,18 @@ module.exports = {
 
     async create(req, res) {
         try {
-            const { nome, cpf, dataNasc, email, endereco, tipoSang } = req.body;
-            
+            const { nome, cpf, email, senha , dataNasc, endereco, numero, tipoSang } = req.body;
+
             const erros = [];
             
             if (!nome) erros.push("O campo 'nome' é obrigatório.");
             if (!tipoSang) erros.push("O campo 'tipoSang' é obrigatório.");
             if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
+            if (!senha) erros.push("O campo 'senha' é obrigatório.");
+            if (!endereco) erros.push("O campo 'endereço' é obrigatório.");
+            if (numero && typeof numero !== 'number') {
+                erros.push("Número inválido.");
+            }
             if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
                 erros.push("Data de nascimento inválida.");
             }
@@ -20,18 +26,19 @@ module.exports = {
                 return res.status(400).json({ erros });
             }
 
-            const dadosPaciente = {
+            const paciente = new Paciente(
                 nome,
                 cpf,
-                dataNasc,
                 email,
+                senha,
+                dataNasc,
                 endereco,
-                tipoSang,
-                data_cadastro: new Date()
-            };
+                numero,
+                tipoSang
+            );
 
             const db = getDb();
-            const resultado = await db.collection('pacientes').insertOne(dadosPaciente);
+            const resultado = await db.collection('pacientes').insertOne(paciente);
 
             res.status(201).json({
                 mensagem: "Paciente cadastrado!",

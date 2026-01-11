@@ -3,10 +3,6 @@ const PacienteController = require('../controllers/PacienteController/PacienteCo
 
 const routes = new Router();
 
-routes.get('/', (req, res) => {
-  res.json({ status: "API Online" });
-});
-
 routes.post('/pacientes', PacienteController.create);
 routes.get('/pacientes', PacienteController.list);
 routes.get('/pacientes/buscar', PacienteController.select);
