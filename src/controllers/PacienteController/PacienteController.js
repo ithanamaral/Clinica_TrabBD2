@@ -42,7 +42,7 @@ module.exports = {
 
             res.status(201).json({
                 mensagem: "Paciente cadastrado!",
-                id: resultado.insertedId
+                id_paci: resultado.insertedId
             });
 
         } catch (error) {
@@ -79,6 +79,61 @@ module.exports = {
 
         } catch (error) {
             res.status(500).json({erro : error.message});
+        }
+    },
+
+    async update(req, res) {
+        try {
+            const { nome, cpf, email, senha , dataNasc, endereco, numero, tipoSang, id_recep, id_paci } = req.body;
+            const db = getDb();
+            const paciente = await db.collection('pacientes').findOne({ 
+                _id: new ObjectId(id_paci) 
+            });
+            const recepcionista = await db.collection('recepcionistas').findOne({ 
+                _id: new ObjectId(id_recep) 
+            });
+            const erros = [];
+
+            if (!nome) erros.push("O campo 'nome' é obrigatório.");
+            if (!tipoSang) erros.push("O campo 'tipoSang' é obrigatório.");
+            if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
+            if (!senha) erros.push("O campo 'senha' é obrigatório.");
+            if (!endereco) erros.push("O campo 'endereço' é obrigatório.");
+            if (numero && typeof numero !== 'number') {
+                erros.push("Número inválido.");
+            }
+            if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
+                erros.push("Data de nascimento inválida.");
+            }
+            if (email && !email.includes('@')) erros.push("E-mail inválido.");
+            if (!paciente) erros.push("Paciente não encontrado");
+            if (!recepcionista) erros.push("Recepcionista não encontrado");
+            if (erros.length > 0) {
+                return res.status(400).json({ erros });
+            }
+
+            await db.collection('pacientes').updateOne(
+                { _id: new ObjectId(id_paci) },
+                {
+                    $set: {
+                        nome,
+                        cpf,
+                        email,
+                        senha,
+                        dataNasc,
+                        endereco,
+                        numero,
+                        tipoSang
+                    }
+                }
+            );
+
+            res.status(200).json({
+                mensagem: "Paciente atualizado!",
+            });
+
+        } catch (error) {
+            res.status(500).json({ erro: error.message});
         }
     },
 

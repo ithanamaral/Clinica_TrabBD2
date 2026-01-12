@@ -42,7 +42,7 @@ module.exports = {
 
             res.status(201).json({
                 mensagem: "Recepcionista cadastrado!",
-                id: resultado.insertedId
+                id_recep: resultado.insertedId
             });
 
         } catch (error) {
@@ -54,8 +54,8 @@ module.exports = {
         try {
             const db = getDb();
             
-            const pacientes = await db.collection('recepcionistas').find({}).toArray();
-            res.json(pacientes);
+            const recepcionistas = await db.collection('recepcionistas').find({}).toArray();
+            res.json(recepcionistas);
 
         } catch (error) {
             res.status(500).json({erro : error.message});
@@ -69,13 +69,13 @@ module.exports = {
             if (!id) return res.status(400).json({erro: "ID não encontrado"});
 
             const db = getDb();
-            const paciente = await db.collection('recepcionistas').findOne({ 
+            const recepcionista = await db.collection('recepcionistas').findOne({ 
                 _id: new ObjectId(id) 
             });
 
-            if (!paciente) return res.status(404).json({erro: "Recepcionista não encontrado"});
+            if (!recepcionista) return res.status(404).json({erro: "Recepcionista não encontrado"});
 
-            res.status(200).json(paciente);
+            res.status(200).json(recepcionista);
 
         } catch (error) {
             res.status(500).json({erro : error.message});
