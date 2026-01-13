@@ -3,18 +3,18 @@ const { ObjectId } = require('mongodb');
 
 async function verificarMedico(req, res, next) {
     try {
-        const { id_medic } = req.body;
+        const { id_enfer } = req.body;
 
-        if (!id_medic) {
-            return res.status(400).json({ erro: "ID do médico é obrigatório." });
+        if (!id_enfer) {
+            return res.status(400).json({ erro: "ID do enfermeiro é obrigatório." });
         }
         const db = getDb();
-        const medico = await db.collection('medicos').findOne({ 
-            _id: new ObjectId(id_medic) 
+        const enfermeiro = await db.collection('enfermeiros').findOne({ 
+            _id: new ObjectId(id_enfer) 
         });
 
-        if (!medico) {
-            return res.status(403).json({ erro: "Médico não encontrado." });
+        if (!enfermeiro) {
+            return res.status(403).json({ erro: "Enfermeiro não encontrado." });
         }
 
         next();
