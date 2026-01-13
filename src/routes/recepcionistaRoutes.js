@@ -8,7 +8,4 @@ routes.get('/recepcionistas', recepcionistaController.list);
 routes.get('/recepcionistas/buscar', recepcionistaController.select);
 routes.delete('/recepcionistas', recepcionistaController.delete);
 
-
-
-
 module.exports = routes;

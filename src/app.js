@@ -4,6 +4,7 @@ const medicoRoutes = require('./routes/medicoRoutes');
 const enfermeiroRoutes = require('./routes/enfermeiroRoutes');
 const recepcionistaRoutes = require('./routes/recepcionistaRoutes');
 const agendamentoRoutes =  require('./routes/agendamentoRoute')
+const authRoutes = require('./routes/authRoute');
 
 class App {
   constructor() {
@@ -22,6 +23,7 @@ class App {
     this.server.use(enfermeiroRoutes);
     this.server.use(recepcionistaRoutes);
     this.server.use(agendamentoRoutes);
+    this.server.use(authRoutes);
   }
 }
 
