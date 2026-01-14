@@ -96,7 +96,8 @@ module.exports = {
             const enfermeiro = await EnfermeiroRepo.findById(id_enfer);
 
             if (!triagem) erros.push("Triagem não encontrada");
-            if (!enfermeiro) erros.push("Enfermeiro não encontrado");if (!sinais_vitais) erros.push("O campo 'sinais vitais' é obrigatório");
+            if (!enfermeiro) erros.push("Enfermeiro não encontrado");
+            if (!sinais_vitais) erros.push("O campo 'sinais vitais' é obrigatório");
             if (peso && typeof peso !== 'number' && typeof peso !== 'string') {
                 erros.push("Peso inválido");
             }

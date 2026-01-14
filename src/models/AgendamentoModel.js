@@ -4,9 +4,9 @@ class Agendamento {
         this.descricao = descricao;
         this.status = status;
         this.horario = horario;
-        this.recep_id = id_recep;
-        this.medic_id = id_medic;
-        this.paci_id = id_paci;
+        this.id_recep = id_recep;
+        this.id_medic = id_medic;
+        this.id_paci = id_paci;
         this.data_criacao = new Date();
     }
 }

@@ -11,6 +11,12 @@ module.exports = {
             const { data, descricao, status, horario, id_recep, id_medic, id_paci } = req.body;
             const erros = [];
 
+            if (!id_paci) return res.status(400).json({ erro: "ID do paciente é obrigatório." });
+            if (!id_medic) return res.status(400).json({ erro: "ID do medico é obrigatório." });
+
+            const medico = await MedicoRepo.findById(id_medic);
+            const paciente = await PacienteRepo.findById(id_paci);
+
             if (data && typeof data !== 'number' && typeof data !== 'string') {
                 erros.push("Data inválida")
             }
@@ -19,18 +25,10 @@ module.exports = {
             }
             if (!descricao) erros.push("O campo 'descrição' é obrigatório.")
             if (status !== undefined && typeof status !== 'boolean') erros.push("O campo 'status' deve ser boolean.")
-            if (!id_medic) erros.push("ID do Médico é obrigatório");
-            if (!id_paci) erros.push("ID do Paciente é obrigatório");
             if (!descricao) erros.push("Descrição é obrigatória");
-
+            if (!paciente) erros.push("Paciente não encontrado");
+            if (!medico) erros.push("Medico não encontrada");
             if (erros.length > 0) return res.status(400).json({ erros });
-
-            const medico = await MedicoRepo.findById(id_medic);
-            const paciente = await PacienteRepo.findById(id_paci);
-
-            if (!medico || !paciente) {
-                return res.status(404).json({ erro: "Médico ou Paciente não encontrados" });
-            }
 
             const agendamento = new Agendamento(
                 data,
@@ -84,7 +82,7 @@ module.exports = {
             const { data, descricao, status, horario, id_agend } = req.body;
             const erros = [];
             
-            if (!id_agend) return res.status(400).json({ erro: "ID da triagem é obrigatório." });
+            if (!id_agend) return res.status(400).json({ erro: "ID do agendamento é obrigatório." });
             
             const agendamento = await AgendamentoRepo.findById(id_agend);
 
