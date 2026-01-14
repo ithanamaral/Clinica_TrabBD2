@@ -1,50 +1,19 @@
-const { getDb } = require('../database');
-const { ObjectId } = require('mongodb');
+const BaseRepository = require('./BaseRepository');
 
-class EnfermeiroRepository {
-    async create(enfermeiro) {
-        const db = getDb();
-        return await db.collection('enfermeiros').insertOne(enfermeiro);
-    }
-
-    async findAll() {
-        const db = getDb();
-        return await db.collection('enfermeiros').find({}).toArray();
-    }
-
-    async findById(id) {
-        const db = getDb();
-        if (!ObjectId.isValid(id)) return null;
-        return await db.collection('enfermeiros').findOne({ _id: new ObjectId(id) });
+class EnfermeiroRepository extends BaseRepository {
+    constructor() {
+        super('enfermeiros');
     }
 
     async findByCpfOrEmail(cpf, email) {
-        const db = getDb();
-        return await db.collection('enfermeiros').findOne({
+        return await this.getDb().findOne({
             $or: [{ cpf }, { email }]
         });
     }
     
     async findByEmail(email) {
-        const db = getDb();
-        return await db.collection('enfermeiros').findOne({ email });
+        return await this.getDb().findOne({ email });
     }
-
-    async update(id, dados) {
-        const db = getDb();
-        if (!ObjectId.isValid(id)) return null;
-        return await db.collection('enfermeiros').updateOne(
-            { _id: new ObjectId(id) },
-            { $set: dados }
-        );
-    }
-
-    async delete(id) {
-        const db = getDb();
-        if (!ObjectId.isValid(id)) return null;
-        return await db.collection('enfermeiros').deleteOne({ _id: new ObjectId(id) });
-    }
-
 }
 
 module.exports = new EnfermeiroRepository();
