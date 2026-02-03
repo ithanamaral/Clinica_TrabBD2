@@ -1,0 +1,44 @@
+.scheduling-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.scheduling-header-content h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.scheduling-header-content p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+}
+
+.status-badge.pending {
+  background-color: rgba(0, 87, 155, 0.1);
+  color: var(--color-primary);
+}
+
+.status-badge.completed {
+  background-color: rgba(27, 94, 32, 0.1);
+  color: var(--color-success);
+}
+
+.status-badge.cancelled {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: var(--color-danger);
+}

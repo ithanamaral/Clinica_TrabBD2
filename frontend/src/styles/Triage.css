@@ -1,0 +1,62 @@
+.vital-signs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .vital-signs-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.vital-sign-card {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.vital-sign-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.vital-sign-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.vital-sign-unit {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: var(--color-text-secondary);
+  margin-left: 0.25rem;
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.priority-badge.normal {
+  background-color: rgba(27, 94, 32, 0.1);
+  color: var(--color-success);
+}
+
+.priority-badge.urgent {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #E65100;
+}
+
+.priority-badge.emergency {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: var(--color-danger);
+}
