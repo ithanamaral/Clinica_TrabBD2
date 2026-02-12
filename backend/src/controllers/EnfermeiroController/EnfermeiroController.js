@@ -1,4 +1,5 @@
 const Enfermeiro = require('../../models/EnfermeiroModel');
+const Endereco = require('../../models/EnderecoModel');
 const EnfermeiroRepo = require('../../repositories/EnfermeiroRepository');
 const RecepcionistaRepo = require('../../repositories/RecepcionistaRepository');
 
@@ -18,7 +19,10 @@ module.exports = {
             if (!nome) erros.push("O campo 'nome' é obrigatório.");
             if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
             if (!senha) erros.push("O campo 'senha' é obrigatório.");
-            if (!endereco) erros.push("O campo 'endereço' é obrigatório.");
+            if (endereco) {
+                const errosEndereco = Endereco.validarEndereco(endereco);
+                if (errosEndereco.length > 0) erros.push(...errosEndereco);
+            }
             if (telefone && typeof telefone !== 'number') {
                 erros.push("Número inválido.");
             }
@@ -99,7 +103,10 @@ module.exports = {
             if (!nome) erros.push("O campo 'nome' é obrigatório.");
             if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
             if (!senha) erros.push("O campo 'senha' é obrigatório.");
-            if (!endereco) erros.push("O campo 'endereço' é obrigatório.");
+            if (endereco) {
+                const errosEndereco = Endereco.validarEndereco(endereco);
+                if (errosEndereco.length > 0) erros.push(...errosEndereco);
+            }
             if (telefone && typeof telefone !== 'number') {
                 erros.push("Número inválido.");
             }
