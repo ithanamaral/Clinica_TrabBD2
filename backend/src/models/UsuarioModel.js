@@ -1,7 +1,8 @@
 const bcryptjs = require('bcryptjs');
+const Endereco = require('./EnderecoModel');
 
 class Usuario {
-    constructor(nome, cpf, tipoPerfil, email, senha, dataNasc, endereco, telefone) {
+    constructor(nome, cpf, tipoPerfil, email, senha, dataNasc, enderecoData, telefone) {
         this.nome = nome;
         this.cpf = cpf;
         this.tipoPerfil = tipoPerfil;
@@ -9,8 +10,18 @@ class Usuario {
         this.senha = senha;
         this.dataNasc = dataNasc;
         this.data_cadastro = new Date();
-        this.endereco = endereco;
         this.telefone = telefone;
+        if(enderecoData) {
+            this.endereco = new Endereco(
+                enderecoData.cidade,
+                enderecoData.bairro,
+                enderecoData.rua,
+                enderecoData.cep,
+                enderecoData.numero
+            )
+        } else {
+            this.endereco = null;
+        }
     }
 
     async hashPassword() {
