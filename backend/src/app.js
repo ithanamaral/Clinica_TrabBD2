@@ -11,6 +11,8 @@ const receitaRoutes = require('./routes/receitaRoutes');
 const exameRoutes = require('./routes/examePedidoRoutes');
 const medicamentoRoutes = require('./routes/medicamentoRoutes');
 const dispensaRoutes = require('./routes/dispensaRoutes');
+const cors = require('cors');
+
 
 class App {
   constructor() {
@@ -21,7 +23,13 @@ class App {
 
   middlewares() {
     this.server.use(express.json());
+    this.server.use(cors({
+      origin: 'http://localhost:5173',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization']
+    }));
   }
+  
 
   routes() {
     this.server.use(pacienteRoutes);
