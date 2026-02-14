@@ -16,13 +16,38 @@ export const Scheduling = () => {
     triageCompleted: false,
   });
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token');
+    // Aqui você pode manter a lógica local se quiser que apareça na tela na hora
     addAppointment(formData);
-    alert('Agendamento criado com sucesso!');
-    setIsOpen(false);
-    resetForm();
+
+    try {
+      const response = await fetch("http://localhost:3001/agendamento/recepcionista", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json" ,
+          "Authorization": `${token}`
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert('Agendamento criado e salvo com sucesso!');
+        setIsOpen(false);
+        resetForm();
+      } else {
+        alert('Erro ao salvar no banco de dados.');
+      }
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      // Mesmo com erro no banco, limpamos o modal para o usuário não travar
+      setIsOpen(false);
+      resetForm();
+    }
   };
+  
+
 
   const resetForm = () => {
     setFormData({
@@ -222,4 +247,7 @@ export const Scheduling = () => {
       </div>
     </div>
   );
+
 };
+
+
