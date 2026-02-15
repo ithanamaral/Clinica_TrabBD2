@@ -1,31 +1,19 @@
 import React, { createContext, useContext, useState } from 'react';
-import {
-  mockPatients,
-  mockDoctors,
-  mockNurses,
-  mockReceptionists,
-  mockAppointments,
-  mockTriages,
-  mockMedications,
-  mockPrescriptions,
-  mockExamRequests,
-  mockMedicalRecords,
-} from '../data/mockData';
 
 const AppContext = createContext(undefined);
 
 export const AppProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [patients, setPatients] = useState(mockPatients);
-  const [doctors, setDoctors] = useState(mockDoctors);
-  const [nurses, setNurses] = useState(mockNurses);
-  const [receptionists, setReceptionists] = useState(mockReceptionists);
-  const [appointments, setAppointments] = useState(mockAppointments);
-  const [triages, setTriages] = useState(mockTriages);
-  const [medications, setMedications] = useState(mockMedications);
-  const [medicalRecords, setMedicalRecords] = useState(mockMedicalRecords);
-  const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
-  const [examRequests, setExamRequests] = useState(mockExamRequests);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [nurses, setNurses] = useState([]);
+  const [receptionists, setReceptionists] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [triages, setTriages] = useState([]);
+  const [medications, setMedications] = useState([]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [examRequests, setExamRequests] = useState([]);
 
   const login = (userData) => {
   if (userData && userData.email) {

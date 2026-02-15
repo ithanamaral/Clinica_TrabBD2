@@ -1,10 +1,32 @@
-import React from 'react';
-import { useApp } from '../../context/AppContext.jsx';
+import React, { useState, useEffect } from 'react';
 import { Users, Stethoscope, Calendar, TrendingUp } from 'lucide-react';
 import '../../styles/Dashboard.css';
 
 export const ReceptionistDashboard = () => {
-  const { patients, doctors, appointments } = useApp();
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      try {
+        const [patRes, docRes, aptRes] = await Promise.all([
+          fetch('http://localhost:3001/pacientes', { headers }),
+          fetch('http://localhost:3001/medicos', { headers }),
+          fetch('http://localhost:3001/agendamento/recepcionista', { headers })
+        ]);
+
+        if (patRes.ok) setPatients(await patRes.json());
+        if (docRes.ok) setDoctors(await docRes.json());
+        if (aptRes.ok) setAppointments(await aptRes.json());
+      } catch (error) { console.error(error); }
+    };
+    fetchData();
+  }, []);
 
   const today = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter((apt) => apt.date === today);
@@ -75,10 +97,10 @@ export const ReceptionistDashboard = () => {
                 </p>
               ) : (
                 todayAppointments.slice(0, 5).map((apt) => {
-                  const patient = patients.find((p) => p.id === apt.patientId);
-                  const doctor = doctors.find((d) => d.id === apt.doctorId);
+                  const patient = patients.find((p) => p._id === apt.patientId);
+                  const doctor = doctors.find((d) => d._id === apt.doctorId);
                   return (
-                    <div key={apt.id} className="appointment-item">
+                    <div key={apt._id} className="appointment-item">
                       <div className="appointment-info">
                         <p>{patient?.name}</p>
                         <p>Dr(a). {doctor?.name}</p>
@@ -104,17 +126,17 @@ export const ReceptionistDashboard = () => {
           <div className="card-content">
             <div className="appointments-list">
               {patients.slice(0, 5).map((patient) => (
-                <div key={patient.id} className="patient-item">
+                <div key={patient._id} className="patient-item">
                   <div className="patient-avatar">
-                    {patient.name.charAt(0)}
+                    {patient?.nome?.charAt(0) || '?'}
                   </div>
                   <div className="patient-info">
-                    <p>{patient.name}</p>
-                    <p>{patient.cpf}</p>
+                    <p>{patient?.nome || 'Nome indisponível'}</p>
+                    <p>{patient?.cpf || 'CPF indisponível'}</p>
                   </div>
                   <div className="patient-blood">
                     <p>Tipo Sanguíneo</p>
-                    <p>{patient.bloodType}</p>
+                    <p>{patient.tipoSang}</p>
                   </div>
                 </div>
               ))}

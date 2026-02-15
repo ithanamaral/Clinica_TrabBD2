@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext.jsx';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import '../../styles/UserManagement.css';
 
@@ -62,7 +61,28 @@ export const UserManagement = () => {
 };
 
 const PatientsTab = () => {
-  const { patients, addPatient, updatePatient, deletePatient } = useApp();
+  const [patients, setPatients] = useState([]);
+
+  const fetchPatients = async () => {
+    try {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const response = await fetch('http://localhost:3001/pacientes', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPatients(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar pacientes:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [formData, setFormData] = useState({
@@ -75,15 +95,31 @@ const PatientsTab = () => {
     bloodType: 'O+',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingPatient) {
-      updatePatient(editingPatient.id, formData);
-      alert('Paciente atualizado com sucesso!');
-    } else {
-      addPatient(formData);
-      alert('Paciente cadastrado com sucesso!');
+    const storedUser = localStorage.getItem('@Clinica:user');
+    const token = storedUser ? JSON.parse(storedUser).token : '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    try {
+      if (editingPatient) {
+        const response = await fetch('http://localhost:3001/pacientes', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ ...formData, id: editingPatient._id, id_paci: editingPatient._id })
+        });
+        if (response.ok) alert('Paciente atualizado com sucesso!');
+      } else {
+        const response = await fetch('http://localhost:3001/pacientes', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(formData)
+        });
+        if (response.ok) alert('Paciente cadastrado com sucesso!');
+      }
+      fetchPatients();
     }
+    catch (error) { console.error(error); }
     setIsOpen(false);
     resetForm();
   };
@@ -107,10 +143,21 @@ const PatientsTab = () => {
     setIsOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este paciente?')) {
-      deletePatient(id);
-      alert('Paciente excluído com sucesso!');
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      try {
+        const response = await fetch('http://localhost:3001/pacientes', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id })
+        });
+        if (response.ok) {
+          alert('Paciente excluído com sucesso!');
+          fetchPatients();
+        }
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -146,11 +193,11 @@ const PatientsTab = () => {
               </tr>
             ) : (
               patients.map((patient) => (
-                <tr key={patient.id}>
-                  <td>{patient.name}</td>
+                <tr key={patient._id}>
+                  <td>{patient.nome}</td>
                   <td>{patient.cpf}</td>
                   <td>{patient.email}</td>
-                  <td>{patient.bloodType}</td>
+                  <td>{patient.tipoSang}</td>
                   <td>
                     <div className="table-actions">
                       <button
@@ -162,7 +209,7 @@ const PatientsTab = () => {
                       </button>
                       <button
                         className="btn-ghost btn-icon btn-delete"
-                        onClick={() => handleDelete(patient.id)}
+                        onClick={() => handleDelete(patient._id)}
                         title="Excluir"
                       >
                         <Trash2 size={16} />
@@ -288,7 +335,28 @@ const PatientsTab = () => {
 };
 
 const DoctorsTab = () => {
-  const { doctors, addDoctor, updateDoctor, deleteDoctor } = useApp();
+  const [doctors, setDoctors] = useState([]);
+
+  const fetchDoctors = async () => {
+    try {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const response = await fetch('http://localhost:3001/medicos', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDoctors(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar médicos:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState({
@@ -300,15 +368,31 @@ const DoctorsTab = () => {
     address: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingDoctor) {
-      updateDoctor(editingDoctor.id, formData);
-      alert('Médico atualizado com sucesso!');
-    } else {
-      addDoctor(formData);
-      alert('Médico cadastrado com sucesso!');
+    const storedUser = localStorage.getItem('@Clinica:user');
+    const token = storedUser ? JSON.parse(storedUser).token : '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    try {
+      if (editingDoctor) {
+        const response = await fetch('http://localhost:3001/medicos', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ ...formData, id: editingDoctor._id, id_medic: editingDoctor._id })
+        });
+        if (response.ok) alert('Médico atualizado com sucesso!');
+      } else {
+        const response = await fetch('http://localhost:3001/medicos', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(formData)
+        });
+        if (response.ok) alert('Médico cadastrado com sucesso!');
+      }
+      fetchDoctors();
     }
+    catch (error) { console.error(error); }
     setIsOpen(false);
     resetForm();
   };
@@ -331,10 +415,21 @@ const DoctorsTab = () => {
     setIsOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este médico?')) {
-      deleteDoctor(id);
-      alert('Médico excluído com sucesso!');
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      try {
+        const response = await fetch('http://localhost:3001/medicos', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id })
+        });
+        if (response.ok) {
+          alert('Médico excluído com sucesso!');
+          fetchDoctors();
+        }
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -364,16 +459,16 @@ const DoctorsTab = () => {
               </tr>
             ) : (
               doctors.map((doctor) => (
-                <tr key={doctor.id}>
-                  <td>{doctor.name}</td>
+                <tr key={doctor._id}>
+                  <td>{doctor.nome}</td>
                   <td>{doctor.crm}</td>
-                  <td>{doctor.specialty}</td>
+                  <td>{doctor.especialidade}</td>
                   <td>
                     <div className="table-actions">
                       <button className="btn-ghost btn-icon btn-edit" onClick={() => handleEdit(doctor)} title="Editar">
                         <Pencil size={16} />
                       </button>
-                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(doctor.id)} title="Excluir">
+                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(doctor._id)} title="Excluir">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -431,20 +526,57 @@ const DoctorsTab = () => {
 };
 
 const NursesTab = () => {
-  const { nurses, addNurse, updateNurse, deleteNurse } = useApp();
+  const [nurses, setNurses] = useState([]);
+
+  const fetchNurses = async () => {
+    try {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const response = await fetch('http://localhost:3001/enfermeiros', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNurses(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar enfermeiros:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNurses();
+  }, []);
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingNurse, setEditingNurse] = useState(null);
   const [formData, setFormData] = useState({ name: '', coren: '', phone: '', address: '' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingNurse) {
-      updateNurse(editingNurse.id, formData);
-      alert('Enfermeiro atualizado com sucesso!');
-    } else {
-      addNurse(formData);
-      alert('Enfermeiro cadastrado com sucesso!');
+    const storedUser = localStorage.getItem('@Clinica:user');
+    const token = storedUser ? JSON.parse(storedUser).token : '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    try {
+      if (editingNurse) {
+        const response = await fetch('http://localhost:3001/enfermeiros', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ ...formData, id: editingNurse._id })
+        });
+        if (response.ok) alert('Enfermeiro atualizado com sucesso!');
+      } else {
+        const response = await fetch('http://localhost:3001/enfermeiros', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(formData)
+        });
+        if (response.ok) alert('Enfermeiro cadastrado com sucesso!');
+      }
+      fetchNurses();
     }
+    catch (error) { console.error(error); }
     setIsOpen(false);
     resetForm();
   };
@@ -460,10 +592,21 @@ const NursesTab = () => {
     setIsOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este enfermeiro?')) {
-      deleteNurse(id);
-      alert('Enfermeiro excluído com sucesso!');
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      try {
+        const response = await fetch('http://localhost:3001/enfermeiros', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id })
+        });
+        if (response.ok) {
+          alert('Enfermeiro excluído com sucesso!');
+          fetchNurses();
+        }
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -493,16 +636,16 @@ const NursesTab = () => {
               </tr>
             ) : (
               nurses.map((nurse) => (
-                <tr key={nurse.id}>
-                  <td>{nurse.name}</td>
+                <tr key={nurse._id}>
+                  <td>{nurse.nome}</td>
                   <td>{nurse.coren}</td>
-                  <td>{nurse.phone}</td>
+                  <td>{nurse.telefone}</td>
                   <td>
                     <div className="table-actions">
                       <button className="btn-ghost btn-icon btn-edit" onClick={() => handleEdit(nurse)} title="Editar">
                         <Pencil size={16} />
                       </button>
-                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(nurse.id)} title="Excluir">
+                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(nurse._id)} title="Excluir">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -552,20 +695,57 @@ const NursesTab = () => {
 };
 
 const ReceptionistsTab = () => {
-  const { receptionists, addReceptionist, updateReceptionist, deleteReceptionist } = useApp();
+  const [receptionists, setReceptionists] = useState([]);
+
+  const fetchReceptionists = async () => {
+    try {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const response = await fetch('http://localhost:3001/recepcionistas', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setReceptionists(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar recepcionistas:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchReceptionists();
+  }, []);
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingReceptionist, setEditingReceptionist] = useState(null);
   const [formData, setFormData] = useState({ name: '', cpf: '', phone: '', address: '' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingReceptionist) {
-      updateReceptionist(editingReceptionist.id, formData);
-      alert('Recepcionista atualizado com sucesso!');
-    } else {
-      addReceptionist(formData);
-      alert('Recepcionista cadastrado com sucesso!');
+    const storedUser = localStorage.getItem('@Clinica:user');
+    const token = storedUser ? JSON.parse(storedUser).token : '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    try {
+      if (editingReceptionist) {
+        const response = await fetch('http://localhost:3001/recepcionistas', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ ...formData, id: editingReceptionist._id })
+        });
+        if (response.ok) alert('Recepcionista atualizado com sucesso!');
+      } else {
+        const response = await fetch('http://localhost:3001/recepcionistas', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(formData)
+        });
+        if (response.ok) alert('Recepcionista cadastrado com sucesso!');
+      }
+      fetchReceptionists();
     }
+    catch (error) { console.error(error); }
     setIsOpen(false);
     resetForm();
   };
@@ -581,10 +761,21 @@ const ReceptionistsTab = () => {
     setIsOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este recepcionista?')) {
-      deleteReceptionist(id);
-      alert('Recepcionista excluído com sucesso!');
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      try {
+        const response = await fetch('http://localhost:3001/recepcionistas', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id })
+        });
+        if (response.ok) {
+          alert('Recepcionista excluído com sucesso!');
+          fetchReceptionists();
+        }
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -614,16 +805,16 @@ const ReceptionistsTab = () => {
               </tr>
             ) : (
               receptionists.map((receptionist) => (
-                <tr key={receptionist.id}>
-                  <td>{receptionist.name}</td>
+                <tr key={receptionist._id}>
+                  <td>{receptionist.nome}</td>
                   <td>{receptionist.cpf}</td>
-                  <td>{receptionist.phone}</td>
+                  <td>{receptionist.telefone}</td>
                   <td>
                     <div className="table-actions">
                       <button className="btn-ghost btn-icon btn-edit" onClick={() => handleEdit(receptionist)} title="Editar">
                         <Pencil size={16} />
                       </button>
-                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(receptionist.id)} title="Excluir">
+                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(receptionist._id)} title="Excluir">
                         <Trash2 size={16} />
                       </button>
                     </div>
