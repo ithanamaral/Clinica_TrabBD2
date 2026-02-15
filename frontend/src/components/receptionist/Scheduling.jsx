@@ -31,16 +31,16 @@ export const Scheduling = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
-    patientId: '',
-    doctorId: '',
-    date: '',
-    time: '',
-    description: '',
-    status: 'pendente',
+    id_paci: '',
+    id_medic: '',
+    data: '',
+    horario: '',
+    descricao: '',
+    status: true,
     triageCompleted: false,
   });
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const storedUser = localStorage.getItem('@Clinica:user');
@@ -63,25 +63,24 @@ const handleSubmit = async (e) => {
         fetchData();
       } else {
         const result = await response.json();
-        alert(`Erro ao salvar no banco de dados: ${result.erro || 'Desconhecido'}`);
+        const mensagemErro = result.erros ? result.erros.join(', ') : result.erro || 'Desconhecido';
+        alert(`Erro ao salvar no banco de dados: ${mensagemErro}`);
       }
     } catch (error) {
       console.error("Erro na requisição:", error);
       setIsOpen(false);
       resetForm();
     }
-};
+  };
   
-
-
   const resetForm = () => {
     setFormData({
-      patientId: '',
-      doctorId: '',
-      date: '',
-      time: '',
-      description: '',
-      status: 'pendente',
+      id_paci: '',
+      id_medic: '',
+      data: '',
+      horario: '',
+      descricao: '',
+      status: true,
       triageCompleted: false,
     });
   };
@@ -104,10 +103,10 @@ const handleSubmit = async (e) => {
     }
   };
 
-  // Sort appointments by date and time
+  // Sort appointments by data and horario
   const sortedAppointments = [...appointments].sort((a, b) => {
-    const dateA = new Date(`${a.date} ${a.time}`);
-    const dateB = new Date(`${b.date} ${b.time}`);
+    const dateA = new Date(`${a.data} ${a.horario}`);
+    const dateB = new Date(`${b.data} ${b.horario}`);
     return dateB.getTime() - dateA.getTime();
   });
 
@@ -155,13 +154,11 @@ const handleSubmit = async (e) => {
                   <tr key={appointment._id}>
                     <td>{patient?.nome}</td>
                     <td>{doctor?.nome}</td>
-                    <td>
-                      {appointment.data}
-                    </td>
+                    <td>{appointment.data}</td>
                     <td>{appointment.horario}</td>
                     <td>
-                      <span className={`status-badge ${appointment.status === 'pendente' ? 'pending' : 'completed'}`}>
-                        {appointment.status === 'pendente' ? 'Pendente' : 'Concluído'}
+                      <span className={`status-badge ${appointment.status ? 'pending' : 'completed'}`}>
+                        {appointment.status ? 'Pendente' : 'Concluído'}
                       </span>
                     </td>
                     <td>
@@ -198,68 +195,68 @@ const handleSubmit = async (e) => {
             <form onSubmit={handleSubmit}>
               <div className="form-grid">
                 <div className="form-group">
-                  <label htmlFor="patientId" className="label">Paciente</label>
+                  <label htmlFor="id_paci" className="label">Paciente</label>
                   <select
-                    id="patientId"
+                    id="id_paci"
                     className="select"
-                    value={formData.patientId}
-                    onChange={(e) => setFormData({ ...formData, patientId: e.target.value })}
+                    value={formData.id_paci}
+                    onChange={(e) => setFormData({ ...formData, id_paci: e.target.value })}
                     required
                   >
                     <option value="">Selecione o paciente</option>
                     {patients.map((patient) => (
                       <option key={patient._id} value={patient._id}>
-                        {patient.name}
+                        {patient.nome}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="doctorId" className="label">Médico</label>
+                  <label htmlFor="id_medic" className="label">Médico</label>
                   <select
-                    id="doctorId"
+                    id="id_medic"
                     className="select"
-                    value={formData.doctorId}
-                    onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                    value={formData.id_medic}
+                    onChange={(e) => setFormData({ ...formData, id_medic: e.target.value })}
                     required
                   >
                     <option value="">Selecione o médico</option>
                     {doctors.map((doctor) => (
                       <option key={doctor._id} value={doctor._id}>
-                        {doctor.name} - {doctor.specialty}
+                        {doctor.nome} - {doctor.especialidade}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="date" className="label">Data</label>
+                  <label htmlFor="data" className="label">Data</label>
                   <input
-                    id="date"
+                    id="data"
                     type="date"
                     className="input"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    value={formData.data}
+                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="time" className="label">Horário</label>
+                  <label htmlFor="horario" className="label">Horário</label>
                   <input
-                    id="time"
+                    id="horario"
                     type="time"
                     className="input"
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    value={formData.horario}
+                    onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
                     required
                   />
                 </div>
                 <div className="form-group form-group-full">
-                  <label htmlFor="description" className="label">Descrição</label>
+                  <label htmlFor="descricao" className="label">Descrição</label>
                   <textarea
-                    id="description"
+                    id="descricao"
                     className="textarea"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                     placeholder="Ex: Consulta de rotina, checkup anual..."
                     required
                   />
@@ -283,5 +280,4 @@ const handleSubmit = async (e) => {
       </div>
     </div>
   );
-
 };
