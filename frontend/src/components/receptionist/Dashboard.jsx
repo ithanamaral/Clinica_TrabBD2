@@ -29,7 +29,7 @@ export const ReceptionistDashboard = () => {
   }, []);
 
   const today = new Date().toISOString().split('T')[0];
-  const todayAppointments = appointments.filter((apt) => apt.date === today);
+  const todayAppointments = appointments.filter((apt) => apt.data === today);
 
   const stats = [
     {
@@ -97,16 +97,16 @@ export const ReceptionistDashboard = () => {
                 </p>
               ) : (
                 todayAppointments.slice(0, 5).map((apt) => {
-                  const patient = patients.find((p) => p._id === apt.patientId);
-                  const doctor = doctors.find((d) => d._id === apt.doctorId);
+                  const patient = patients.find((p) => p._id === apt.id_paci);
+                  const doctor = doctors.find((d) => d._id === apt.id_medic);
                   return (
                     <div key={apt._id} className="appointment-item">
                       <div className="appointment-info">
-                        <p>{patient?.name}</p>
-                        <p>Dr(a). {doctor?.name}</p>
+                        <p>{patient?.nome}</p>
+                        <p>{doctor?.nome}</p>
                       </div>
                       <div className="appointment-time">
-                        <p>{apt.time}</p>
+                        <p>{apt.horario}</p>
                         <span className={`badge ${apt.status === 'pendente' ? 'badge-primary' : 'badge-success'}`}>
                           {apt.status === 'pendente' ? 'Pendente' : 'Concluído'}
                         </span>

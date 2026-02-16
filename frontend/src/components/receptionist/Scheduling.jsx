@@ -103,6 +103,17 @@ export const Scheduling = () => {
     }
   };
 
+  const formatarDataBR = (dataString) => {
+    if (!dataString) return '';
+    if (dataString.includes('/')) return dataString; 
+    
+    if (dataString.includes('-')) {
+      const [ano, mes, dia] = dataString.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+    return dataString;
+  };
+
   // Sort appointments by data and horario
   const sortedAppointments = [...appointments].sort((a, b) => {
     const dateA = new Date(`${a.data} ${a.horario}`);
@@ -154,7 +165,7 @@ export const Scheduling = () => {
                   <tr key={appointment._id}>
                     <td>{patient?.nome}</td>
                     <td>{doctor?.nome}</td>
-                    <td>{appointment.data}</td>
+                    <td>{formatarDataBR(appointment.data)}</td>
                     <td>{appointment.horario}</td>
                     <td>
                       <span className={`status-badge ${appointment.status ? 'pending' : 'completed'}`}>
