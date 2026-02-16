@@ -6,6 +6,8 @@ export const Scheduling = () => {
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [filterPatient, setFilterPatient] = useState('');
+  const [filterDoctor, setFilterDoctor] = useState('');
 
   const fetchData = async () => {
     const storedUser = localStorage.getItem('@Clinica:user');
@@ -114,12 +116,39 @@ export const Scheduling = () => {
     return dataString;
   };
 
-  // Sort appointments by data and horario
-  const sortedAppointments = [...appointments].sort((a, b) => {
-    const dateA = new Date(`${a.data} ${a.horario}`);
-    const dateB = new Date(`${b.data} ${b.horario}`);
+  // 1. Filtrar por Paciente e Médico
+  const filteredAppointments = appointments.filter((apt) => {
+    const patient = patients.find((p) => p._id === apt.id_paci);
+    const doctor = doctors.find((d) => d._id === apt.id_medic);
+
+    const matchPatient = patient?.nome?.toLowerCase().includes(filterPatient.toLowerCase()) ?? false;
+    const matchDoctor = doctor?.nome?.toLowerCase().includes(filterDoctor.toLowerCase()) ?? false;
+
+    return matchPatient && matchDoctor;
+  });
+
+  // 2. Ordenar (Corrigindo o bug matemático do fuso com datas mistas)
+  const sortedFiltered = [...filteredAppointments].sort((a, b) => {
+    const formatToUS = (d) => d.includes('/') ? d.split('/').reverse().join('-') : d;
+    const dateA = new Date(`${formatToUS(a.data)}T${a.horario}`);
+    const dateB = new Date(`${formatToUS(b.data)}T${b.horario}`);
     return dateB.getTime() - dateA.getTime();
   });
+
+  // 3. Agrupar por Data
+  const groupedAppointments = sortedFiltered.reduce((groups, apt) => {
+    const dateKey = formatarDataBR(apt.data);
+    if (!groups[dateKey]) groups[dateKey] = [];
+    groups[dateKey].push(apt);
+    return groups;
+  }, {});
+
+  // Sort appointments by data and horario
+  //const sortedAppointments = [...appointments].sort((a, b) => {
+  //  const dateA = new Date(`${a.data} ${a.horario}`);
+  //  const dateB = new Date(`${b.data} ${b.horario}`);
+  //  return dateB.getTime() - dateA.getTime();
+  //});
 
   return (
     <div>
@@ -137,13 +166,33 @@ export const Scheduling = () => {
         </button>
       </div>
 
+      {/* BARRA DE FILTROS */}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <input
+          type="text"
+          className="input"
+          placeholder="🔍 Filtrar por Paciente..."
+          value={filterPatient}
+          onChange={(e) => setFilterPatient(e.target.value)}
+          style={{ maxWidth: '300px' }}
+        />
+        <input
+          type="text"
+          className="input"
+          placeholder="🩺 Filtrar por Médico..."
+          value={filterDoctor}
+          onChange={(e) => setFilterDoctor(e.target.value)}
+          style={{ maxWidth: '300px' }}
+        />
+      </div>
+
       <div className="table-container">
         <table className="table">
           <thead>
             <tr>
               <th>Paciente</th>
               <th>Médico</th>
-              <th>Data</th>
+              {/* Coluna 'Data' removida daqui */}
               <th>Horário</th>
               <th>Status</th>
               <th>Triagem</th>
@@ -151,46 +200,58 @@ export const Scheduling = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedAppointments.length === 0 ? (
+            {Object.keys(groupedAppointments).length === 0 ? (
               <tr>
-                <td colSpan="7" className="empty-state">
-                  Nenhum agendamento cadastrado
+                <td colSpan="6" className="empty-state">
+                  Nenhum agendamento encontrado
                 </td>
               </tr>
             ) : (
-              sortedAppointments.map((appointment) => {
-                const patient = patients.find((p) => p._id === appointment.id_paci);
-                const doctor = doctors.find((d) => d._id === appointment.id_medic);
-                return (
-                  <tr key={appointment._id}>
-                    <td>{patient?.nome}</td>
-                    <td>{doctor?.nome}</td>
-                    <td>{formatarDataBR(appointment.data)}</td>
-                    <td>{appointment.horario}</td>
-                    <td>
-                      <span className={`status-badge ${appointment.status ? 'pending' : 'completed'}`}>
-                        {appointment.status ? 'Pendente' : 'Concluído'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${appointment.triageCompleted ? 'completed' : 'pending'}`}>
-                        {appointment.triageCompleted ? 'Concluída' : 'Pendente'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          className="btn-ghost btn-icon btn-delete"
-                          onClick={() => handleDelete(appointment._id)}
-                          title="Excluir"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+              Object.keys(groupedAppointments).map((date) => (
+                <React.Fragment key={date}>
+                  {/* LINHA DE CABEÇALHO DO GRUPO (DATA) */}
+                  <tr style={{ backgroundColor: '#f0fdf4', borderBottom: '2px solid #c6f6d5' }}>
+                    <td colSpan="6" style={{ fontWeight: 'bold', color: '#166534', padding: '0.75rem 1rem' }}>
+                      📅 {date}
                     </td>
                   </tr>
-                );
-              })
+                  
+                  {/* AGENDAMENTOS DESTA DATA */}
+                  {groupedAppointments[date].map((appointment) => {
+                    const patient = patients.find((p) => p._id === appointment.id_paci);
+                    const doctor = doctors.find((d) => d._id === appointment.id_medic);
+                    return (
+                      <tr key={appointment._id}>
+                        <td>{patient?.nome}</td>
+                        <td>{doctor?.nome}</td>
+                        {/* Coluna 'Data' removida daqui também */}
+                        <td>{appointment.horario}</td>
+                        <td>
+                          <span className={`status-badge ${appointment.status ? 'pending' : 'completed'}`}>
+                            {appointment.status ? 'Pendente' : 'Concluído'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${appointment.triageCompleted ? 'completed' : 'pending'}`}>
+                            {appointment.triageCompleted ? 'Concluída' : 'Pendente'}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="table-actions">
+                            <button
+                              className="btn-ghost btn-icon btn-delete"
+                              onClick={() => handleDelete(appointment._id)}
+                              title="Excluir"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))
             )}
           </tbody>
         </table>
