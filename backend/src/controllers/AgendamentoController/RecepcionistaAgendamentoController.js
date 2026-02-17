@@ -8,7 +8,7 @@ module.exports = {
 
     async create(req, res) {
         try {
-            const { data, descricao, status, horario, id_recep, id_medic, id_paci } = req.body;
+            const { data, descricao, status, horario, horarioFim, id_recep, id_medic, id_paci } = req.body;
             const erros = [];
 
             if (!id_paci) return res.status(400).json({ erro: "ID do paciente é obrigatório." });
@@ -18,16 +18,33 @@ module.exports = {
             const paciente = await PacienteRepo.findById(id_paci);
 
             if (data && typeof data !== 'number' && typeof data !== 'string') {
-                erros.push("Data inválida")
+                erros.push("Data inválida");
             }
             if (horario && typeof horario !== 'number' && typeof horario !== 'string') {
-                erros.push("Horario inválido")
+                erros.push("Horario inválido");
             }
-            if (!descricao) erros.push("O campo 'descrição' é obrigatório.")
-            if (status !== undefined && typeof status !== 'boolean') erros.push("O campo 'status' deve ser boolean.")
-            if (!descricao) erros.push("Descrição é obrigatória");
+            if (!horarioFim) erros.push("O horário de saída é obrigatório.");
+            if (!descricao) erros.push("O campo 'descrição' é obrigatório.");
+            if (status !== undefined && typeof status !== 'boolean') erros.push("O campo 'status' deve ser boolean.");
             if (!paciente) erros.push("Paciente não encontrado");
-            if (!medico) erros.push("Medico não encontrada");
+            if (!medico) erros.push("Medico não encontrado");
+
+            // --- NOVA TRAVA: VERIFICAÇÃO DE SOBREPOSIÇÃO DE HORÁRIOS ---
+            if (id_medic && data && horario && horarioFim) {
+                // Busca todos os agendamentos deste médico neste dia
+                const agendamentosDoDia = await AgendamentoRepo.findByMedicoEData(id_medic, data);
+                
+                // Checa se algum agendamento existente atropela o novo
+                const temConflito = agendamentosDoDia.some(apt => {
+                    return (horario < apt.horarioFim) && (horarioFim > apt.horario);
+                });
+
+                if (temConflito) {
+                    erros.push("O médico já possui um agendamento que conflita com este horário.");
+                }
+            }
+            // -----------------------------------------------------------
+
             if (erros.length > 0) return res.status(400).json({ erros });
 
             const agendamento = new Agendamento(
@@ -35,6 +52,7 @@ module.exports = {
                 descricao,
                 true,
                 horario,
+                horarioFim, // NOVO CAMPO AQUI
                 new ObjectId(id_recep),
                 new ObjectId(id_medic),
                 new ObjectId(id_paci)

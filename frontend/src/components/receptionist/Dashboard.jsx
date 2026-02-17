@@ -106,7 +106,7 @@ export const ReceptionistDashboard = () => {
                         <p>{doctor?.nome}</p>
                       </div>
                       <div className="appointment-time">
-                        <p>{apt.horario}</p>
+                        <p>{apt.horario} às {apt.horarioFim}</p>
                         <span className={`badge ${apt.status === 'pendente' ? 'badge-primary' : 'badge-success'}`}>
                           {apt.status === 'pendente' ? 'Pendente' : 'Concluído'}
                         </span>

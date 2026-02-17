@@ -37,6 +37,7 @@ export const Scheduling = () => {
     id_medic: '',
     data: '',
     horario: '',
+    horarioFim: '',
     descricao: '',
     status: true,
     triageCompleted: false,
@@ -44,6 +45,21 @@ export const Scheduling = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // --- NOVA TRAVA DE HORÁRIO E PERÍODO ---
+    const agora = new Date();
+    const dataInicio = new Date(`${formData.data}T${formData.horario}`);
+    const dataFim = new Date(`${formData.data}T${formData.horarioFim}`);
+
+    if (dataInicio < agora) {
+      alert("⚠️ Não é possível agendar para um horário que já passou.");
+      return; 
+    }
+    if (dataFim <= dataInicio) {
+      alert("⚠️ O horário de saída deve ser depois do horário de entrada!");
+      return;
+    }
+    // ---------------------------------------
     
     const storedUser = localStorage.getItem('@Clinica:user');
     const token = storedUser ? JSON.parse(storedUser).token : '';
@@ -66,7 +82,7 @@ export const Scheduling = () => {
       } else {
         const result = await response.json();
         const mensagemErro = result.erros ? result.erros.join(', ') : result.erro || 'Desconhecido';
-        alert(`Erro ao salvar no banco de dados: ${mensagemErro}`);
+        alert(`Erro ao salvar o agendamento: ${mensagemErro}`);
       }
     } catch (error) {
       console.error("Erro na requisição:", error);
@@ -81,6 +97,7 @@ export const Scheduling = () => {
       id_medic: '',
       data: '',
       horario: '',
+      horarioFim: '',
       descricao: '',
       status: true,
       triageCompleted: false,
@@ -225,7 +242,7 @@ export const Scheduling = () => {
                         <td>{patient?.nome}</td>
                         <td>{doctor?.nome}</td>
                         {/* Coluna 'Data' removida daqui também */}
-                        <td>{appointment.horario}</td>
+                        <td>{appointment.horario} às {appointment.horarioFim}</td>
                         <td>
                           <span className={`status-badge ${appointment.status ? 'pending' : 'completed'}`}>
                             {appointment.status ? 'Pendente' : 'Concluído'}
@@ -307,20 +324,18 @@ export const Scheduling = () => {
                     type="date"
                     className="input"
                     value={formData.data}
+                    min={new Date().toISOString().split('T')[0]} // <-- ESSA LINHA TRAVA O CALENDÁRIO
                     onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="horario" className="label">Horário</label>
-                  <input
-                    id="horario"
-                    type="time"
-                    className="input"
-                    value={formData.horario}
-                    onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
-                    required
-                  />
+                  <label htmlFor="horario" className="label">Horário de Chegada</label>
+                  <input id="horario" type="time" className="input" value={formData.horario} onChange={(e) => setFormData({ ...formData, horario: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="horarioFim" className="label">Horário de Saída</label>
+                  <input id="horarioFim" type="time" className="input" value={formData.horarioFim} onChange={(e) => setFormData({ ...formData, horarioFim: e.target.value })} required />
                 </div>
                 <div className="form-group form-group-full">
                   <label htmlFor="descricao" className="label">Descrição</label>

@@ -1,9 +1,10 @@
 class Agendamento {
-    constructor(data, descricao, status, horario, id_recep, id_medic, id_paci) {
+    constructor(data, descricao, status, horario, horarioFim, id_recep, id_medic, id_paci) {
         this.data = data;
         this.descricao = descricao;
         this.status = status;
         this.horario = horario;
+        this.horarioFim = horarioFim; // NOVO CAMPO
         this.id_recep = id_recep;
         this.id_medic = id_medic;
         this.id_paci = id_paci;
