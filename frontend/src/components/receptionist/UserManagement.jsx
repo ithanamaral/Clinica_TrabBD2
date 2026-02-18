@@ -388,19 +388,29 @@ const DoctorsTab = () => {
     const token = storedUser ? JSON.parse(storedUser).token : '';
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 
+    const payload = {
+      ...formData,
+      telefone: Number(formData.telefone),
+      crm: Number(formData.crm),
+      endereco: {
+        ...formData.endereco,
+        numero: Number(formData.endereco.numero)
+      }
+    };
+
     try {
       if (editingDoctor) {
         const response = await fetch('http://localhost:3001/medicos', {
           method: 'PUT',
           headers,
-          body: JSON.stringify({ ...formData, id: editingDoctor._id, id_medic: editingDoctor._id })
+          body: JSON.stringify({ ...payload, id: editingDoctor._id, id_medic: editingDoctor._id })
         });
         if (response.ok) alert('Médico atualizado com sucesso!');
       } else {
         const response = await fetch('http://localhost:3001/medicos', {
           method: 'POST',
           headers,
-          body: JSON.stringify(formData)
+          body: JSON.stringify(payload)
         });
         if (response.ok) alert('Médico cadastrado com sucesso!');
       }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, Calendar } from 'lucide-react';
 import '../../styles/Scheduling.css';
 
 export const Scheduling = () => {
@@ -8,6 +8,8 @@ export const Scheduling = () => {
   const [doctors, setDoctors] = useState([]);
   const [filterPatient, setFilterPatient] = useState('');
   const [filterDoctor, setFilterDoctor] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [editingAppointment, setEditingAppointment] = useState(null);
 
   const fetchData = async () => {
     const storedUser = localStorage.getItem('@Clinica:user');
@@ -46,43 +48,57 @@ export const Scheduling = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // --- NOVA TRAVA DE HORÁRIO E PERÍODO ---
+    // Trava de horários (Mantida)
     const agora = new Date();
-    const dataInicio = new Date(`${formData.data}T${formData.horario}`);
-    const dataFim = new Date(`${formData.data}T${formData.horarioFim}`);
+    // Usamos uma data base fictícia para comparar apenas os horários se for no mesmo dia
+    const dataBaseStr = formData.data.includes('/') ? formData.data.split('/').reverse().join('-') : formData.data;
+    const dataInicio = new Date(`${dataBaseStr}T${formData.horario}`);
+    const dataFim = new Date(`${dataBaseStr}T${formData.horarioFim}`);
 
-    if (dataInicio < agora) {
-      alert("⚠️ Não é possível agendar para um horário que já passou.");
-      return; 
+    // Só bloqueia passado se for um agendamento NOVO ou se mudou a data/hora para o passado
+    if (!editingAppointment && dataInicio < agora) {
+       alert("⚠️ Não é possível agendar para um horário que já passou.");
+       return; 
     }
+
     if (dataFim <= dataInicio) {
       alert("⚠️ O horário de saída deve ser depois do horário de entrada!");
       return;
     }
-    // ---------------------------------------
-    
+
     const storedUser = localStorage.getItem('@Clinica:user');
     const token = storedUser ? JSON.parse(storedUser).token : '';
+    const headers = { "Content-Type": "application/json" , "Authorization": `Bearer ${token}` };
 
     try {
-      const response = await fetch("http://localhost:3001/agendamento/recepcionista", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" ,
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify(formData),
-      });
+      let response;
+      // SE ESTIVER EDITANDO (PUT)
+      if (editingAppointment) {
+        response = await fetch("http://localhost:3001/agendamento/recepcionista", {
+          method: "PUT",
+          headers,
+          // O backend espera 'id_agend' para atualizar
+          body: JSON.stringify({ ...formData, id_agend: editingAppointment._id }),
+        });
+      } 
+      // SE FOR NOVO (POST)
+      else {
+        response = await fetch("http://localhost:3001/agendamento/recepcionista", {
+          method: "POST",
+          headers,
+          body: JSON.stringify(formData),
+        });
+      }
 
       if (response.ok) {
-        alert('Agendamento criado e salvo com sucesso!');
+        alert(editingAppointment ? 'Agendamento atualizado!' : 'Agendamento criado!');
         setIsOpen(false);
         resetForm();
         fetchData();
       } else {
         const result = await response.json();
         const mensagemErro = result.erros ? result.erros.join(', ') : result.erro || 'Desconhecido';
-        alert(`Erro ao salvar o agendamento: ${mensagemErro}`);
+        alert(`Erro: ${mensagemErro}`);
       }
     } catch (error) {
       console.error("Erro na requisição:", error);
@@ -102,6 +118,23 @@ export const Scheduling = () => {
       status: true,
       triageCompleted: false,
     });
+    setEditingAppointment(null);
+  };
+
+  const handleEdit = (appointment) => {
+    setEditingAppointment(appointment);
+    // Preenche o formulário com os dados do agendamento clicado
+    setFormData({
+      id_paci: appointment.id_paci,
+      id_medic: appointment.id_medic,
+      data: appointment.data,
+      horario: appointment.horario,
+      horarioFim: appointment.horarioFim,
+      descricao: appointment.descricao,
+      status: appointment.status,
+      triageCompleted: appointment.triageCompleted
+    });
+    setIsOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -133,32 +166,50 @@ export const Scheduling = () => {
     return dataString;
   };
 
-  // 1. Filtrar por Paciente e Médico
+  // --- NOVA LÓGICA DE FILTRAGEM E AGRUPAMENTO ---
+
+  // Data de hoje no formato YYYY-MM-DD para comparação
+  const today = new Date().toISOString().split('T')[0];
+
+  // 1. Filtrar (Nome, Médico e REGRA DE DATA)
   const filteredAppointments = appointments.filter((apt) => {
     const patient = patients.find((p) => p._id === apt.id_paci);
     const doctor = doctors.find((d) => d._id === apt.id_medic);
 
+    // Filtros de texto
     const matchPatient = patient?.nome?.toLowerCase().includes(filterPatient.toLowerCase()) ?? false;
     const matchDoctor = doctor?.nome?.toLowerCase().includes(filterDoctor.toLowerCase()) ?? false;
 
-    return matchPatient && matchDoctor;
+    // Regra de Data:
+    // Se tiver data no filtro, usa ela exata.
+    // Se NÃO tiver filtro, mostra de hoje para frente.
+    let matchDate = false;
+    if (filterDate) {
+      matchDate = apt.data === filterDate;
+    } else {
+      matchDate = apt.data >= today;
+    }
+
+    return matchPatient && matchDoctor && matchDate;
   });
 
-  // 2. Ordenar (Corrigindo o bug matemático do fuso com datas mistas)
+  // 2. Ordenar (Mantendo a correção do fuso)
   const sortedFiltered = [...filteredAppointments].sort((a, b) => {
     const formatToUS = (d) => d.includes('/') ? d.split('/').reverse().join('-') : d;
     const dateA = new Date(`${formatToUS(a.data)}T${a.horario}`);
     const dateB = new Date(`${formatToUS(b.data)}T${b.horario}`);
+    // Ordenação decrescente (mais novos primeiro)
     return dateB.getTime() - dateA.getTime();
   });
 
-  // 3. Agrupar por Data
+  // 3. Agrupar por Data Formatada (BR)
   const groupedAppointments = sortedFiltered.reduce((groups, apt) => {
     const dateKey = formatarDataBR(apt.data);
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push(apt);
     return groups;
   }, {});
+  // -----------------------------------------------
 
   // Sort appointments by data and horario
   //const sortedAppointments = [...appointments].sort((a, b) => {
@@ -201,6 +252,24 @@ export const Scheduling = () => {
           onChange={(e) => setFilterDoctor(e.target.value)}
           style={{ maxWidth: '300px' }}
         />
+        {/* NOVO FILTRO DE DATA */}
+        <div style={{ position: 'relative' }}>
+            <Calendar size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#666' }}/>
+            <input
+            type="date"
+            className="input"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            style={{ paddingLeft: '35px', maxWidth: '180px' }}
+            title="Filtrar por data específica (limpe para ver agendamentos futuros)"
+            />
+        </div>
+        {/* Botão para limpar filtro de data se ele estiver preenchido */}
+        {filterDate && (
+            <button className="btn-ghost" onClick={() => setFilterDate('')} style={{fontSize: '0.9rem'}}>
+                Limpar Data
+            </button>
+        )}
       </div>
 
       <div className="table-container">
@@ -256,6 +325,13 @@ export const Scheduling = () => {
                         <td>
                           <div className="table-actions">
                             <button
+                            className="btn-ghost btn-icon btn-edit"
+                            onClick={() => handleEdit(appointment)}
+                            title="Editar"
+                            >
+                            <Pencil size={16} />
+                            </button>
+                            <button
                               className="btn-ghost btn-icon btn-delete"
                               onClick={() => handleDelete(appointment._id)}
                               title="Excluir"
@@ -278,7 +354,7 @@ export const Scheduling = () => {
       <div className={`modal-overlay ${isOpen ? '' : 'hidden'}`} onClick={() => { setIsOpen(false); resetForm(); }}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h2 className="modal-title">Novo Agendamento</h2>
+            <h2 className="modal-title">{editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}</h2>
           </div>
           <div className="modal-body">
             <form onSubmit={handleSubmit}>
@@ -358,7 +434,7 @@ export const Scheduling = () => {
                   Cancelar
                 </button>
                 <button type="submit" className="btn btn-success">
-                  Agendar
+                  {editingAppointment ? 'Atualizar' : 'Agendar'}
                 </button>
               </div>
             </form>

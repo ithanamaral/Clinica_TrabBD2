@@ -97,43 +97,56 @@ module.exports = {
 
     async update(req, res) {
         try {
-            const { data, descricao, status, horario, id_agend } = req.body;
+            const { data, descricao, status, horario, horarioFim, id_agend, id_medic, id_paci } = req.body;
             const erros = [];
             
             if (!id_agend) return res.status(400).json({ erro: "ID do agendamento é obrigatório." });
             
             const agendamento = await AgendamentoRepo.findById(id_agend);
 
-            if (data && typeof data !== 'number' && typeof data !== 'string') {
-                erros.push("Data inválida")
-            }
-            if (horario && typeof horario !== 'number' && typeof horario !== 'string') {
-                erros.push("Horario inválido")
-            }
-            if (!descricao) erros.push("O campo 'descrição' é obrigatório.")
-            if (status !== undefined && typeof status !== 'boolean') erros.push("O campo 'status' deve ser boolean.")
+            if (data && typeof data !== 'number' && typeof data !== 'string') erros.push("Data inválida");
+            if (horario && typeof horario !== 'number' && typeof horario !== 'string') erros.push("Horario inválido");
+            if (!horarioFim) erros.push("O horário de saída é obrigatório.");
+            if (!descricao) erros.push("O campo 'descrição' é obrigatório.");
+            if (status !== undefined && typeof status !== 'boolean') erros.push("O campo 'status' deve ser boolean.");
             if (!agendamento) erros.push("Agendamento não encontrado");
-            if (erros.length > 0) {
-                return res.status(400).json({ erros});
+
+            // --- TRAVA: VERIFICA SOBREPOSIÇÃO NO UPDATE ---
+            const medicoDoAgendamento = id_medic || agendamento.id_medic;
+            if (medicoDoAgendamento && data && horario && horarioFim) {
+                const agendamentosDoDia = await AgendamentoRepo.findByMedicoEData(medicoDoAgendamento, data);
+                
+                const temConflito = agendamentosDoDia.some(apt => {
+                    if (apt._id.toString() === id_agend.toString()) return false;
+                    return (horario < apt.horarioFim) && (horarioFim > apt.horario);
+                });
+
+                if (temConflito) {
+                    erros.push("O médico já possui um agendamento que conflita com este novo horário.");
+                }
             }
+
+            if (erros.length > 0) return res.status(400).json({ erros });
 
             const dadosAtualizados = {
                 data,
                 horario,
+                horarioFim,
                 descricao,
                 status
-            }
+            };
+
+            if (id_medic) dadosAtualizados.id_medic = new ObjectId(id_medic);
+            if (id_paci) dadosAtualizados.id_paci = new ObjectId(id_paci);
 
             await AgendamentoRepo.update(id_agend, dadosAtualizados);
 
-            res.status(200).json({
-                mensagem: "Agendamento atualizado!",
-            });
+            res.status(200).json({ mensagem: "Agendamento atualizado!" });
 
         } catch (error) {
             res.status(500).json({ erro: error.message});
         }
-    }, 
+    },
 
     async delete(req, res) {
             try {
