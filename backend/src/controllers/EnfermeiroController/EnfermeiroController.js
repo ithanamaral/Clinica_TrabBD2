@@ -7,37 +7,31 @@ module.exports = {
 
     async create(req, res) {
         try {
-            const { nome, cpf, email, senha , dataNasc, endereco, telefone, uf, coren } = req.body;
+            const dados = req.body;
             const erros = [];
+
+            const errosEnferm = Enfermeiro.validarEnfermeiro(dados);
+            if (errosEnferm.length > 0) erros.push(...errosEnferm);
+
+            if (dados.endereco) {
+                const errosEnd = Endereco.validarEndereco(dados.endereco);
+                if (errosEnd.length > 0) erros.push(...errosEnd);
+            }
+
+            if (erros.length === 0) {
+                const usuarioExistente = await EnfermeiroRepo.findByCpfOrEmail(dados.cpf, dados.email);
+                if (usuarioExistente) {
+                    if (usuarioExistente.cpf === dados.cpf) erros.push("CPF já existe.");
+                    if (usuarioExistente.email === dados.email) erros.push("E-mail já existe.");
+                }
+            }
             
-            const usuarioExistente = await EnfermeiroRepo.findByCpfOrEmail(cpf, email);
-            
-            if (usuarioExistente) {
-                if (usuarioExistente.cpf === cpf) erros.push("O CPF já existe no sistema.");
-                if (usuarioExistente.email === email) erros.push("O e-mail já existe no sistema.");
-            }
-            if (!nome) erros.push("O campo 'nome' é obrigatório.");
-            if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
-            if (!senha) erros.push("O campo 'senha' é obrigatório.");
-            if (endereco) {
-                const errosEndereco = Endereco.validarEndereco(endereco);
-                if (errosEndereco.length > 0) erros.push(...errosEndereco);
-            }
-            if (telefone && typeof telefone !== 'number') {
-                erros.push("Número inválido.");
-            }
-            if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
-                erros.push("Data de nascimento inválida.");
-            }
-            if (!uf) erros.push("O campo 'UF' é obrigatório.");
-            if (coren && typeof coren !== 'number') {
-                erros.push("COREN inválida.");
-            }
-            if (email && !email.includes('@')) erros.push("E-mail inválido.");
             if (erros.length > 0) {
                 return res.status(400).json({ erros });
             }
 
+            const { nome, cpf, email, senha, dataNasc, endereco, telefone, uf, coren } = dados;
+            
             const enfermeiro = new Enfermeiro(
                 nome,
                 cpf,
@@ -98,31 +92,37 @@ module.exports = {
             const enfermeiro = await EnfermeiroRepo.findById(id_enfer);
             const recepcionista = await RecepcionistaRepo.findById(id_recep);
 
-            if (!enfermeiro) erros.push("Enfermeiro não encontrado");
-            if (!recepcionista) erros.push("Recepcionista não encontrado");
-            if (!nome) erros.push("O campo 'nome' é obrigatório.");
-            if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
-            if (!senha) erros.push("O campo 'senha' é obrigatório.");
+            if (!enfermeiro) erros.push("Enfermeiro não encontrado.");
+            if (!recepcionista) erros.push("Recepcionista não encontrado.");
+
+            if (erros.length > 0) return res.status(404).json({ erros });
+
+            const dados = { nome, cpf, email, senha , dataNasc, endereco, telefone, uf, coren };
+
+            const errosValidacao = Enfermeiro.validarEnfermeiro(dados);
+            if (errosValidacao.length > 0) erros.push(...errosValidacao);
+            
             if (endereco) {
-                const errosEndereco = Endereco.validarEndereco(endereco);
-                if (errosEndereco.length > 0) erros.push(...errosEndereco);
+                const errosEnd = Endereco.validarEndereco(endereco);
+                if (errosEnd.length > 0) erros.push(...errosEnd);
             }
-            if (telefone && typeof telefone !== 'number') {
-                erros.push("Número inválido.");
+
+            if (erros.length === 0) {
+                const usuarioExistente = await EnfermeiroRepo.findByCpfOrEmail(cpf, email);
+                
+                if (usuarioExistente) {
+                    if (String(usuarioExistente._id) !== String(id_enfer)) {
+                        if (usuarioExistente.cpf === cpf) erros.push("Este CPF já está sendo usado por outro usuário.");
+                        if (usuarioExistente.email === email) erros.push("Este E-mail já está sendo usado por outro usuário.");
+                    }
+                }
             }
-            if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
-                erros.push("Data de nascimento inválida.");
-            }
-            if (!uf) erros.push("O campo 'UF' é obrigatório.");
-            if (coren && typeof coren !== 'number') {
-                erros.push("COREN inválida.");
-            }
-            if (email && !email.includes('@')) erros.push("E-mail inválido.");
+
             if (erros.length > 0) {
                 return res.status(400).json({ erros });
             }
-
-            const dados = { 
+            
+            const dadosAtualizados = { 
                 nome, 
                 cpf, 
                 email, 
@@ -133,7 +133,7 @@ module.exports = {
                 uf, 
                 coren };
             
-            await EnfermeiroRepo.update(id_enfer, dados);
+            await EnfermeiroRepo.update(id_enfer, dadosAtualizados);
 
             res.status(200).json({ mensagem: "Enfermeiro atualizado!" });
 

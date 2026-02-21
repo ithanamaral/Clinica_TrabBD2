@@ -6,33 +6,30 @@ module.exports = {
 
     async create(req, res) {
         try {
-            const { nome, cpf, email, senha , dataNasc, endereco, telefone, turno } = req.body;
+            const dados = req.body;
             const erros = [];
+
+            const errosRecep = Recepcionista.validarRecepcionista(dados);
+            if (errosRecep.length > 0) erros.push(...errosRecep);
+
+            if (dados.endereco) {
+                const errosEnd = Endereco.validarEndereco(dados.endereco);
+                if (errosEnd.length > 0) erros.push(...errosEnd);
+            }
+
+            if (erros.length === 0) {
+                const usuarioExistente = await RecepcionistaRepo.findByCpfOrEmail(dados.cpf, dados.email);
+                if (usuarioExistente) {
+                    if (usuarioExistente.cpf === dados.cpf) erros.push("CPF já existe.");
+                    if (usuarioExistente.email === dados.email) erros.push("E-mail já existe.");
+                }
+            }
             
-            const usuarioExistente = await RecepcionistaRepo.findByCpfOrEmail(cpf, email);
-            
-            if (usuarioExistente) {
-                if (usuarioExistente.cpf === cpf) erros.push("O CPF já existe no sistema.");
-                if (usuarioExistente.email === email) erros.push("O e-mail já existe no sistema.");
-            }
-            if (!nome) erros.push("O campo 'nome' é obrigatório.");
-            if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
-            if (!senha) erros.push("O campo 'senha' é obrigatório.");
-            if (endereco) {
-                const errosEndereco = Endereco.validarEndereco(endereco);
-                if (errosEndereco.length > 0) erros.push(...errosEndereco);
-            }
-            if (telefone && typeof telefone !== 'number') {
-                erros.push("Número inválido.");
-            }
-            if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
-                erros.push("Data de nascimento inválida.");
-            }
-            if (!turno) erros.push("O campo 'turno' é obrigatório.");
-            if (email && !email.includes('@')) erros.push("E-mail inválido.");
             if (erros.length > 0) {
                 return res.status(400).json({ erros });
             }
+
+            const { nome, cpf, email, senha, dataNasc, endereco, telefone, turno } = dados;
 
             const recepcionista = new Recepcionista(
                 nome,

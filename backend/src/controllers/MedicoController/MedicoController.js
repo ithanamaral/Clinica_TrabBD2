@@ -7,39 +7,30 @@ module.exports = {
 
     async create(req, res) {
         try {
-            const { nome, cpf, email, senha , dataNasc, endereco, telefone, uf, crm, especialidade, descricao } = req.body;
-            
+            const dados = req.body;
             const erros = [];
 
-            const usuarioExistente = await MedicoRepo.findByCpfOrEmail(cpf, email);
+            const errosMedi = Medico.validarMedico(dados);
+            if (errosMedi.length > 0) erros.push(...errosMedi);
+
+            if (dados.endereco) {
+                const errosEnd = Endereco.validarEndereco(dados.endereco);
+                if (errosEnd.length > 0) erros.push(...errosEnd);
+            }
+
+            if (erros.length === 0) {
+                const usuarioExistente = await MedicoRepo.findByCpfOrEmail(dados.cpf, dados.email);
+                if (usuarioExistente) {
+                    if (usuarioExistente.cpf === dados.cpf) erros.push("CPF já existe.");
+                    if (usuarioExistente.email === dados.email) erros.push("E-mail já existe.");
+                }
+            }
             
-            if (usuarioExistente) {
-                if (usuarioExistente.cpf === cpf) erros.push("O CPF já existe no sistema.");
-                if (usuarioExistente.email === email) erros.push("O e-mail já existe no sistema.");
-            }
-            if (!nome) erros.push("O campo 'nome' é obrigatório.");
-            if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
-            if (!senha) erros.push("O campo 'senha' é obrigatório.");
-            if (!especialidade) erros.push("O campo 'especialidade' é obrigatório.");
-            if (!descricao) erros.push("O campo 'descricao' é obrigatório.");
-            if (endereco) {
-                const errosEndereco = Endereco.validarEndereco(endereco);
-                if (errosEndereco.length > 0) erros.push(...errosEndereco);
-            }
-            if (telefone && typeof telefone !== 'number') {
-                erros.push("Número inválido.");
-            }
-            if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
-                erros.push("Data de nascimento inválida.");
-            }
-            if (!uf) erros.push("O campo 'UF' é obrigatório.");
-            if (crm && typeof crm !== 'number' && typeof crm !== 'string') {
-                erros.push("CRM inválida.");
-            }
-            if (email && !email.includes('@')) erros.push("E-mail inválido.");
             if (erros.length > 0) {
                 return res.status(400).json({ erros });
             }
+
+            const { nome, cpf, email, senha, dataNasc, endereco, telefone, uf, crm, especialidade, descricao } = dados;
 
             const medico = new Medico(
                 nome,
@@ -103,28 +94,32 @@ module.exports = {
             const medico = await MedicoRepo.findById(id_medic);
             const recepcionista = await RecepcionistaRepo.findById(id_recep);
 
-            if (!medico) erros.push("Medico não encontrado");
-            if (!recepcionista) erros.push("Recepcionista não encontrado");
-            if (!nome) erros.push("O campo 'nome' é obrigatório.");
-            if (!cpf) erros.push("O campo 'cpf' é obrigatório.");
-            if (!senha) erros.push("O campo 'senha' é obrigatório.");
-            if (!especialidade) erros.push("O campo 'especialidade' é obrigatório.");
-            if (!descricao) erros.push("O campo 'descricao' é obrigatório.");
+            if (!medico) erros.push("Médico não encontrado.");
+            if (!recepcionista) erros.push("Recepcionista não encontrado.");
+
+            if (erros.length > 0) return res.status(404).json({ erros });
+
+            const dados = { nome, cpf, email, senha , dataNasc, endereco, telefone, uf, crm, especialidade, descricao };
+
+            const errosValidacao = Medico.validarMedico(dados);
+            if (errosValidacao.length > 0) erros.push(...errosValidacao);
+            
             if (endereco) {
-                const errosEndereco = Endereco.validarEndereco(endereco);
-                if (errosEndereco.length > 0) erros.push(...errosEndereco);
+                const errosEnd = Endereco.validarEndereco(endereco);
+                if (errosEnd.length > 0) erros.push(...errosEnd);
             }
-            if (telefone && typeof telefone !== 'number') {
-                erros.push("Número inválido.");
+
+            if (erros.length === 0) {
+                const usuarioExistente = await MedicoRepo.findByCpfOrEmail(cpf, email);
+                
+                if (usuarioExistente) {
+                    if (String(usuarioExistente._id) !== String(id_medic)) {
+                        if (usuarioExistente.cpf === cpf) erros.push("Este CPF já está sendo usado por outro usuário.");
+                        if (usuarioExistente.email === email) erros.push("Este E-mail já está sendo usado por outro usuário.");
+                    }
+                }
             }
-            if (dataNasc && typeof dataNasc !== 'number' && typeof dataNasc !== 'string') {
-                erros.push("Data de nascimento inválida.");
-            }
-            if (!uf) erros.push("O campo 'UF' é obrigatório.");
-            if (crm && typeof crm !== 'number' && typeof crm !== 'string') {
-                erros.push("CRM inválida.");
-            }
-            if (email && !email.includes('@')) erros.push("E-mail inválido.");
+
             if (erros.length > 0) {
                 return res.status(400).json({ erros });
             }
