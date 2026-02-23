@@ -16,7 +16,7 @@ export const ConsultationPage = ({ appointmentId, onBack }) => {
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
 
   const [prescriptionForm, setPrescriptionForm] = useState({
-    medication: '', dosage: '', frequency: '', duration: '', instructions: '',
+    medication: '', dosage: ''
   });
 
   useEffect(() => {
@@ -95,18 +95,21 @@ export const ConsultationPage = ({ appointmentId, onBack }) => {
         throw new Error(err.erros ? err.erros.join(', ') : 'Erro ao salvar evolução');
       }
 
+      // Captura o ID da evolução criada para vincular na receita
+      const evoData = await resEvo.json();
+      const evoId = evoData.id || evoData._id || evoData.insertedId;
+
       // 5. Salvar Prescrições
       for (const rx of prescriptions) {
-        await fetch('http://localhost:3001/receita', {
+        await fetch('http://localhost:3001/receitas', {
           method: 'POST',
           headers,
           body: JSON.stringify({
-            id_agend: appointmentId,
-            medicamento: rx.medication,
-            dosagem: rx.dosage,
-            frequencia: rx.frequency,
-            duracao: rx.duration,
-            instrucoes: rx.instructions
+            id_paci: patient?._id || patient?.id,
+            id_medic: userObj?.id || userObj?._id,
+            id_evolu: evoId,
+            descricao: `${rx.medication} - ${rx.dosage}`,
+            emissao: new Date().toISOString()
           })
         });
       }
@@ -183,7 +186,7 @@ export const ConsultationPage = ({ appointmentId, onBack }) => {
                     e.preventDefault();
                     setPrescriptions([...prescriptions, {...prescriptionForm, id: Date.now()}]);
                     setShowPrescriptionForm(false);
-                    setPrescriptionForm({ medication: '', dosage: '', frequency: '', duration: '', instructions: '' });
+                    setPrescriptionForm({ medication: '', dosage: '' });
                   }}>Salvar Item</button>
                 </div>
               )}
@@ -191,7 +194,7 @@ export const ConsultationPage = ({ appointmentId, onBack }) => {
               {prescriptions.map(p => (
                 <div key={p.id} className="prescription-item" style={{display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eee'}}>
                   <span>{p.medication} - {p.dosage}</span>
-                  <button className="text-red" onClick={() => setPrescriptions(prescriptions.filter(i => i.id !== p.id))}><Trash2 size={14}/></button>
+                  <button className="btn-remove-mini" onClick={() => setPrescriptions(prescriptions.filter(i => i.id !== p.id))}><Trash2 size={14}/></button>
                 </div>
               ))}
             </div>
