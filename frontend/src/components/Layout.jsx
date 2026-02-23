@@ -39,7 +39,6 @@ export const Sidebar = ({ currentPage, onNavigate, isOpen, onClose }) => {
     if (role === 'medico') {
       return [
         { id: 'queue', label: 'Fila de Atendimento', icon: ClipboardList },
-        { id: 'consultation', label: 'Consulta', icon: Stethoscope },
         { id: 'history', label: 'Histórico de Pacientes', icon: Search },
       ];
     }
