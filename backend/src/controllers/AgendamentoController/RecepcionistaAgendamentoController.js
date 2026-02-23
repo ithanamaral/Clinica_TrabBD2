@@ -97,12 +97,21 @@ module.exports = {
 
     async update(req, res) {
         try {
-            const { data, descricao, status, horario, horarioFim, id_agend, id_medic, id_paci } = req.body;
+            const { data, descricao, status, horario, horarioFim, id_agend, id_medic, id_paci} = req.body;
             const erros = [];
-            
+
             if (!id_agend) return res.status(400).json({ erro: "ID do agendamento é obrigatório." });
-            
             const agendamento = await AgendamentoRepo.findById(id_agend);
+            if (!agendamento) erros.push("Agendamento não encontrado.");
+
+            if (!id_medic) return res.status(400).json({erro: "ID do médico obrigatório"});
+            const medico = await MedicoRepo.findById(id_medic);
+            if (!medico) erros.push("Médico não encontrado.");
+
+            if (!id_paci) return res.status(400).json({ erro: "ID do paciente obrigatório" });
+            const paciente = await PacienteRepo.findById(id_paci);
+            if (!paciente) erros.push("Paciente não encontrado.");
+
 
             if (data && typeof data !== 'number' && typeof data !== 'string') erros.push("Data inválida");
             if (horario && typeof horario !== 'number' && typeof horario !== 'string') erros.push("Horario inválido");
