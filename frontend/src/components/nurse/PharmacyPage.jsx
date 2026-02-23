@@ -1,58 +1,118 @@
-import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext.jsx';
+import React, { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, AlertTriangle, Package } from 'lucide-react';
 import '../../styles/Pharmacy.css';
 
 export const PharmacyPage = () => {
-  const { medications, addMedication, updateMedication, deleteMedication } = useApp();
+  const [medications, setMedications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingMed, setEditingMed] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
+    activeIngredient: '',
     quantity: 0,
-    unit: 'unidade',
-    expiryDate: '',
-    manufacturer: '',
-    description: '',
   });
 
-  const lowStockMeds = medications.filter((med) => med.quantity <= 10);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editingMed) {
-      updateMedication(editingMed.id, formData);
-      alert('Medicamento atualizado com sucesso!');
-    } else {
-      addMedication(formData);
-      alert('Medicamento cadastrado com sucesso!');
+  const fetchMedications = async () => {
+    try {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const res = await fetch('http://localhost:3001/medicamentos', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setMedications(await res.json());
+      }
+    } catch (error) {
+      console.error("Erro ao buscar medicamentos:", error);
     }
-    setIsOpen(false);
-    resetForm();
+  };
+
+  useEffect(() => {
+    fetchMedications();
+  }, []);
+
+  const lowStockMeds = medications.filter((med) => (med.qnt_disp || med.quantidade || med.quantity) <= 10);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const storedUser = localStorage.getItem('@Clinica:user');
+    const userObj = storedUser ? JSON.parse(storedUser) : null;
+    const token = userObj?.token;
+
+    if (!userObj || (!userObj.id && !userObj._id)) {
+      alert("Sessão inválida ou expirada. Por favor, faça login novamente.");
+      return;
+    }
+
+    const payload = {
+      nome: formData.name,
+      principio: formData.activeIngredient,
+      qnt_disp: Number(formData.quantity),
+      id_enfer: userObj?.id || userObj?._id
+    };
+
+    try {
+      let res;
+      if (editingMed) {
+        res = await fetch('http://localhost:3001/medicamentos', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ ...payload, id_medicam: editingMed._id || editingMed.id })
+        });
+      } else {
+        res = await fetch('http://localhost:3001/medicamentos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (res.ok) {
+        alert(editingMed ? 'Medicamento atualizado!' : 'Medicamento cadastrado!');
+        setIsOpen(false);
+        resetForm();
+        fetchMedications();
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.erros ? err.erros.join(', ') : (err.erro || 'Erro ao salvar')}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const resetForm = () => {
     setFormData({
       name: '',
+      activeIngredient: '',
       quantity: 0,
-      unit: 'unidade',
-      expiryDate: '',
-      manufacturer: '',
-      description: '',
     });
     setEditingMed(null);
   };
 
   const handleEdit = (med) => {
     setEditingMed(med);
-    setFormData(med);
+    setFormData({
+      name: med.nome || med.name,
+      activeIngredient: med.principio || med.activeIngredient || '',
+      quantity: med.qnt_disp || med.quantidade || med.quantity
+    });
     setIsOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este medicamento?')) {
-      deleteMedication(id);
-      alert('Medicamento excluído com sucesso!');
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      try {
+        await fetch('http://localhost:3001/medicamentos', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id })
+        });
+        alert('Medicamento excluído com sucesso!');
+        fetchMedications();
+      } catch (error) { console.error(error); }
     }
   };
 
@@ -113,34 +173,29 @@ export const PharmacyPage = () => {
             <tr>
               <th>Medicamento</th>
               <th>Quantidade</th>
-              <th>Unidade</th>
-              <th>Validade</th>
-              <th>Fabricante</th>
               <th style={{ textAlign: 'right' }}>Ações</th>
             </tr>
           </thead>
           <tbody>
             {medications.length === 0 ? (
               <tr>
-                <td colSpan="6" className="empty-state">
+                <td colSpan="3" className="empty-state">
                   Nenhum medicamento cadastrado
                 </td>
               </tr>
             ) : (
               medications.map((med) => (
-                <tr key={med.id}>
+                <tr key={med._id || med.id}>
                   <td>
-                    {med.name}
-                    {med.quantity <= 10 && (
+                    <div style={{ fontWeight: '500' }}>{med.nome || med.name}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#666' }}>{med.principio}</div>
+                    {(med.qnt_disp || med.quantidade || med.quantity) <= 10 && (
                       <span className="badge badge-danger" style={{ marginLeft: '0.5rem' }}>
                         Estoque Baixo
                       </span>
                     )}
                   </td>
-                  <td>{med.quantity}</td>
-                  <td>{med.unit}</td>
-                  <td>{new Date(med.expiryDate).toLocaleDateString('pt-BR')}</td>
-                  <td>{med.manufacturer}</td>
+                  <td>{med.qnt_disp || med.quantidade || med.quantity}</td>
                   <td>
                     <div className="table-actions">
                       <button
@@ -152,7 +207,7 @@ export const PharmacyPage = () => {
                       </button>
                       <button
                         className="btn-ghost btn-icon btn-delete"
-                        onClick={() => handleDelete(med.id)}
+                        onClick={() => handleDelete(med._id || med.id)}
                         title="Excluir"
                       >
                         <Trash2 size={16} />
@@ -189,6 +244,17 @@ export const PharmacyPage = () => {
                   />
                 </div>
                 <div className="form-group">
+                  <label htmlFor="activeIngredient" className="label">Princípio Ativo</label>
+                  <input
+                    id="activeIngredient"
+                    type="text"
+                    className="input"
+                    value={formData.activeIngredient}
+                    onChange={(e) => setFormData({ ...formData, activeIngredient: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
                   <label htmlFor="quantity" className="label">Quantidade</label>
                   <input
                     id="quantity"
@@ -197,53 +263,6 @@ export const PharmacyPage = () => {
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
                     required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="unit" className="label">Unidade</label>
-                  <select
-                    id="unit"
-                    className="select"
-                    value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    required
-                  >
-                    <option value="unidade">Unidade</option>
-                    <option value="caixa">Caixa</option>
-                    <option value="frasco">Frasco</option>
-                    <option value="ampola">Ampola</option>
-                    <option value="comprimido">Comprimido</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="expiryDate" className="label">Data de Validade</label>
-                  <input
-                    id="expiryDate"
-                    type="date"
-                    className="input"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group form-group-full">
-                  <label htmlFor="manufacturer" className="label">Fabricante</label>
-                  <input
-                    id="manufacturer"
-                    type="text"
-                    className="input"
-                    value={formData.manufacturer}
-                    onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group form-group-full">
-                  <label htmlFor="description" className="label">Descrição</label>
-                  <textarea
-                    id="description"
-                    className="textarea"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
               </div>
