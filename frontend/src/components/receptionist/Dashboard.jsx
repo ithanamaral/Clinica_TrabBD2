@@ -50,12 +50,7 @@ export const ReceptionistDashboard = () => {
       icon: Calendar,
       colorClass: 'primary',
     },
-    {
-      title: 'Taxa de Ocupação',
-      value: '85%',
-      icon: TrendingUp,
-      colorClass: 'success',
-    },
+
   ];
 
   return (
