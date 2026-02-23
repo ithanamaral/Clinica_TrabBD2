@@ -140,7 +140,6 @@ export const TriagePage = () => {
         <div className="card" style={{ flex: 1 }}>
           <div className="card-header stat-card-header">
             <h3 className="stat-card-title">Aguardando Triagem</h3>
-            <div className="stat-icon warning"><AlertCircle size={16} /></div>
           </div>
           <div className="card-content">
             <div className="stat-value">{pendingTriage.length}</div>
@@ -150,7 +149,6 @@ export const TriagePage = () => {
         <div className="card" style={{ flex: 1 }}>
           <div className="card-header stat-card-header">
             <h3 className="stat-card-title">Triagens Finalizadas</h3>
-            <div className="stat-icon success"><CheckCircle2 size={16} /></div>
           </div>
           <div className="card-content">
             <div className="stat-value">{completedTriage.length}</div>
