@@ -75,7 +75,7 @@ export const Sidebar = ({ currentPage, onNavigate, isOpen, onClose }) => {
             <div className="sidebar-logo">
               <Activity size={20} />
             </div>
-            <span className="sidebar-brand-text">SGC</span>
+            <span className="sidebar-brand-text">Ressoe Cuidado humanizado</span>
           </div>
           <button
             className="btn-ghost btn-icon sidebar-close-btn"
