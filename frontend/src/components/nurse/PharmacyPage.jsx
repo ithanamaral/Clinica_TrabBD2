@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, AlertTriangle, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, Package, Minus } from 'lucide-react';
 import '../../styles/Pharmacy.css';
 
 export const PharmacyPage = () => {
@@ -11,6 +11,11 @@ export const PharmacyPage = () => {
     activeIngredient: '',
     quantity: 0,
   });
+  
+  const [dispenseModalOpen, setDispenseModalOpen] = useState(false);
+  const [selectedMedForDispense, setSelectedMedForDispense] = useState(null);
+  const [patients, setPatients] = useState([]);
+  const [dispenseData, setDispenseData] = useState({ patientId: '', quantity: 1 });
 
   const fetchMedications = async () => {
     try {
@@ -24,6 +29,21 @@ export const PharmacyPage = () => {
       }
     } catch (error) {
       console.error("Erro ao buscar medicamentos:", error);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const storedUser = localStorage.getItem('@Clinica:user');
+      const token = storedUser ? JSON.parse(storedUser).token : '';
+      const res = await fetch('http://localhost:3001/pacientes', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setPatients(await res.json());
+      }
+    } catch (error) {
+      console.error("Erro ao buscar pacientes:", error);
     }
   };
 
@@ -116,6 +136,55 @@ export const PharmacyPage = () => {
     }
   };
 
+  const handleDispenseClick = (med) => {
+    setSelectedMedForDispense(med);
+    setDispenseData({ patientId: '', quantity: 1 });
+    setDispenseModalOpen(true);
+    if (patients.length === 0) fetchPatients();
+  };
+
+  const handleDispenseSubmit = async (e) => {
+    e.preventDefault();
+    const storedUser = localStorage.getItem('@Clinica:user');
+    const userObj = storedUser ? JSON.parse(storedUser) : null;
+    const token = userObj?.token;
+
+    if (!userObj || (!userObj.id && !userObj._id)) {
+      alert("Sessão inválida. Faça login novamente.");
+      return;
+    }
+
+    // Montar o payload para a rota de dispensas
+    const payload = {
+      id_medicam: selectedMedForDispense._id || selectedMedForDispense.id,
+      id_paci: dispenseData.patientId,
+      id_enfer: userObj.id || userObj._id,
+      quantidade: Number(dispenseData.quantity)
+    };
+
+    console.log("🚀 Enviando para /dispensas:", payload); //Debug: verifique os dados
+    try {
+      // Enviar POST para /dispensas (O backend cuidará do estoque e do histórico)
+      const res = await fetch('http://localhost:3001/dispensas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert('Medicamento dispensado e estoque atualizado!');
+        setDispenseModalOpen(false);
+        fetchMedications(); // Atualiza o estoque na tela
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.erro || 'Erro ao dispensar'}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erro de conexão.');
+    }
+  };
+
   return (
     <div>
       <div className="pharmacy-header">
@@ -199,6 +268,13 @@ export const PharmacyPage = () => {
                   <td>
                     <div className="table-actions">
                       <button
+                        className="btn-ghost btn-icon"
+                        onClick={() => handleDispenseClick(med)}
+                        title="Dispensar para Paciente"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <button
                         className="btn-ghost btn-icon btn-edit"
                         onClick={() => handleEdit(med)}
                         title="Editar"
@@ -277,6 +353,55 @@ export const PharmacyPage = () => {
                 <button type="submit" className="btn btn-success">
                   {editingMed ? 'Atualizar' : 'Cadastrar'}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div className={`modal-overlay ${dispenseModalOpen ? '' : 'hidden'}`} onClick={() => setDispenseModalOpen(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2 className="modal-title">Dispensar Medicamento</h2>
+          </div>
+          <div className="modal-body">
+            <p className="mb-4">Medicamento: <strong>{selectedMedForDispense?.nome || selectedMedForDispense?.name}</strong></p>
+            <p className="mb-4 text-sm text-gray-500">Disponível: {selectedMedForDispense?.qnt_disp || selectedMedForDispense?.quantidade || selectedMedForDispense?.quantity}</p>
+            
+            <form onSubmit={handleDispenseSubmit}>
+              <div className="form-grid">
+                <div className="form-group form-group-full">
+                  <label htmlFor="patient" className="label">Paciente</label>
+                  <select
+                    id="patient"
+                    className="select"
+                    value={dispenseData.patientId}
+                    onChange={(e) => setDispenseData({ ...dispenseData, patientId: e.target.value })}
+                    required
+                  >
+                    <option value="">Selecione um paciente</option>
+                    {patients.map(p => (
+                      <option key={p._id || p.id} value={p._id || p.id}>{p.nome} - CPF: {p.cpf}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="dispenseQuantity" className="label">Quantidade</label>
+                  <input
+                    id="dispenseQuantity"
+                    type="number"
+                    className="input"
+                    min="1"
+                    max={selectedMedForDispense?.qnt_disp || selectedMedForDispense?.quantidade || selectedMedForDispense?.quantity}
+                    value={dispenseData.quantity}
+                    onChange={(e) => setDispenseData({ ...dispenseData, quantity: parseInt(e.target.value) })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setDispenseModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-success">Confirmar Dispensa</button>
               </div>
             </form>
           </div>
