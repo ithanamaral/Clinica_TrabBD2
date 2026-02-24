@@ -265,10 +265,15 @@ export const TriagePage = () => {
                   >
                     <option value="">Selecione o enfermeiro...</option>
                     {nurses.map(nurse => (
-                      <option key={nurse._id || nurse.id} value={nurse._id || nurse.id}>{nurse.nome}</option>
+                      <option key={nurse._id || nurse.id} value={nurse._id || nurse.id}>
+                        {nurse.nome}
+                      </option>
                     ))}
                   </select>
-                </div>
+                  {JSON.parse(localStorage.getItem('@Clinica:user'))?.role === 'admin' && (
+                    <small style={{ color: '#666' }}>Selecione o enfermeiro que realizou o procedimento.</small>
+                  )}
+                  </div>
                 <div className="form-grid">
                   <div className="form-group">
                     <label className="label">Pressão Arterial</label>
