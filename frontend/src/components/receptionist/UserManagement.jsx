@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import '../../styles/UserManagement.css';
 
@@ -14,1013 +14,386 @@ export const UserManagement = () => {
 
       <div className="tabs">
         <div className="tabs-list">
-          <button
-            className={`tab-trigger ${activeTab === 'patients' ? 'active' : ''}`}
-            onClick={() => setActiveTab('patients')}
-          >
-            Pacientes
-          </button>
-          <button
-            className={`tab-trigger ${activeTab === 'doctors' ? 'active' : ''}`}
-            onClick={() => setActiveTab('doctors')}
-          >
-            Médicos
-          </button>
-          <button
-            className={`tab-trigger ${activeTab === 'nurses' ? 'active' : ''}`}
-            onClick={() => setActiveTab('nurses')}
-          >
-            Enfermeiros
-          </button>
-          <button
-            className={`tab-trigger ${activeTab === 'receptionists' ? 'active' : ''}`}
-            onClick={() => setActiveTab('receptionists')}
-          >
-            Recepcionistas
-          </button>
+          <button className={`tab-trigger ${activeTab === 'patients' ? 'active' : ''}`} onClick={() => setActiveTab('patients')}>Pacientes</button>
+          <button className={`tab-trigger ${activeTab === 'doctors' ? 'active' : ''}`} onClick={() => setActiveTab('doctors')}>Médicos</button>
+          <button className={`tab-trigger ${activeTab === 'nurses' ? 'active' : ''}`} onClick={() => setActiveTab('nurses')}>Enfermeiros</button>
+          <button className={`tab-trigger ${activeTab === 'receptionists' ? 'active' : ''}`} onClick={() => setActiveTab('receptionists')}>Recepcionistas</button>
         </div>
 
-        <div className={`tab-content ${activeTab === 'patients' ? 'active' : ''}`}>
-          <PatientsTab />
-        </div>
-
-        <div className={`tab-content ${activeTab === 'doctors' ? 'active' : ''}`}>
-          <DoctorsTab />
-        </div>
-
-        <div className={`tab-content ${activeTab === 'nurses' ? 'active' : ''}`}>
-          <NursesTab />
-        </div>
-
-        <div className={`tab-content ${activeTab === 'receptionists' ? 'active' : ''}`}>
-          <ReceptionistsTab />
-        </div>
+        <div className={`tab-content ${activeTab === 'patients' ? 'active' : ''}`}><PatientsTab /></div>
+        <div className={`tab-content ${activeTab === 'doctors' ? 'active' : ''}`}><DoctorsTab /></div>
+        <div className={`tab-content ${activeTab === 'nurses' ? 'active' : ''}`}><NursesTab /></div>
+        <div className={`tab-content ${activeTab === 'receptionists' ? 'active' : ''}`}><ReceptionistsTab /></div>
       </div>
     </div>
   );
 };
 
+/* --- COMPONENTE ENDEREÇO REUTILIZÁVEL --- */
+const AddressForm = ({ endereco, onChange }) => (
+  <div className="form-group form-group-full">
+    <h3 style={{ marginBottom: '15px', color: '#1B5E20', fontSize: '16px', borderBottom: '1px solid #ccc', paddingBottom: '5px', marginTop: '10px' }}>
+      Endereço
+    </h3>
+    <div className="form-grid">
+      <div className="form-group">
+        <label className="label">CEP</label>
+        <input type="text" className="input" value={endereco.cep} onChange={(e) => onChange({ ...endereco, cep: e.target.value })} required />
+      </div>
+      <div className="form-group">
+        <label className="label">Estado (UF)</label>
+        <input type="text" className="input" maxLength="2" placeholder="Ex: MG" value={endereco.estado} onChange={(e) => onChange({ ...endereco, estado: e.target.value })} required />
+      </div>
+      <div className="form-group">
+        <label className="label">Cidade</label>
+        <input type="text" className="input" value={endereco.cidade} onChange={(e) => onChange({ ...endereco, cidade: e.target.value })} required />
+      </div>
+      <div className="form-group">
+        <label className="label">Bairro</label>
+        <input type="text" className="input" value={endereco.bairro} onChange={(e) => onChange({ ...endereco, bairro: e.target.value })} required />
+      </div>
+      <div className="form-group">
+        <label className="label">Rua</label>
+        <input type="text" className="input" value={endereco.rua} onChange={(e) => onChange({ ...endereco, rua: e.target.value })} required />
+      </div>
+      <div className="form-group">
+        <label className="label">Número</label>
+        <input type="text" className="input" value={endereco.numero} onChange={(e) => onChange({ ...endereco, numero: e.target.value })} required />
+      </div>
+    </div>
+  </div>
+);
+
+/* --- ABA PACIENTES --- */
 const PatientsTab = () => {
   const [patients, setPatients] = useState([]);
-
-  const fetchPatients = async () => {
-    try {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      const response = await fetch('http://localhost:3001/pacientes', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPatients(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar pacientes:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchPatients();
-  }, []);
-
   const [isOpen, setIsOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [formData, setFormData] = useState({
-    nome: '',
-    cpf: '',
-    email: '',
-    senha: '', // Campo obrigatório, segundo o Model do tulio
-    dataNasc: '',
-    telefone: '',
-    tipoSang: 'O+',
-    endereco: {
-      estado: '',
-      cidade: '',
-      bairro: '',
-      rua: '',
-      cep: '',
-      numero: ''
-    }
+    nome: '', cpf: '', email: '', senha: '', dataNasc: '', telefone: '', tipoSang: 'O+',
+    endereco: { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' }
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const storedUser = localStorage.getItem('@Clinica:user');
-    const token = storedUser ? JSON.parse(storedUser).token : '';
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-
+  const fetchPatients = useCallback(async () => {
     try {
-      if (editingPatient) {
-        const response = await fetch('http://localhost:3001/pacientes', {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ ...formData, id: editingPatient._id, id_paci: editingPatient._id })
-        });
-        if (response.ok) alert('Paciente atualizado com sucesso!');
-      } else {
-        const response = await fetch('http://localhost:3001/pacientes', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(formData)
-        });
-        if (response.ok) alert('Paciente cadastrado com sucesso!');
-      }
-      fetchPatients();
-    }
-    catch (error) { console.error(error); }
-    setIsOpen(false);
-    resetForm();
-  };
+      const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token;
+      const res = await fetch('http://localhost:3001/pacientes', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) setPatients(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
+  useEffect(() => { fetchPatients(); }, [fetchPatients]);
 
   const resetForm = () => {
-    setFormData({
-      nome: '',
-      cpf: '',
-      email: '',
-      senha: '',
-      dataNasc: '',
-      telefone: '',
-      tipoSang: 'O+',
-      endereco: {
-        estado: '',
-        cidade: '',
-        bairro: '',
-        rua: '',
-        cep: '',
-        numero: ''
-      }
-    });
+    setFormData({ nome: '', cpf: '', email: '', senha: '', dataNasc: '', telefone: '', tipoSang: 'O+', endereco: { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' } });
     setEditingPatient(null);
   };
 
-  const handleEdit = (patient) => {
-    setEditingPatient(patient);
-    setFormData(patient);
+  const handleEdit = (p) => {
+    setEditingPatient(p);
+    setFormData({ ...p, dataNasc: p.dataNasc ? p.dataNasc.split('T')[0] : '', senha: '', endereco: p.endereco || { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' } });
     setIsOpen(true);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const authData = JSON.parse(localStorage.getItem('@Clinica:user'));
+    const token = authData?.token || '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    const payload = { ...formData };
+    try {
+      if (editingPatient) {
+        payload.id_paci = editingPatient._id;
+        if (authData?.role === 'admin') payload.id_admin = authData.id;
+        else payload.id_recep = authData.id;
+        await fetch('http://localhost:3001/pacientes', { method: 'PUT', headers, body: JSON.stringify(payload) });
+      } else {
+        await fetch('http://localhost:3001/pacientes', { method: 'POST', headers, body: JSON.stringify(payload) });
+      }
+      fetchPatients(); setIsOpen(false); resetForm();
+    } catch (e) { console.error(e); }
+  };
+
   const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este paciente?')) {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      try {
-        const response = await fetch('http://localhost:3001/pacientes', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ id })
-        });
-        if (response.ok) {
-          alert('Paciente excluído com sucesso!');
-          fetchPatients();
-        }
-      } catch (error) { console.error(error); }
-    }
+    if (!window.confirm('Excluir paciente?')) return;
+    const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token;
+    await fetch('http://localhost:3001/pacientes', { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ id }) });
+    fetchPatients();
   };
 
   return (
     <div>
-      <div className="actions-bar">
-        <button
-          className="btn btn-success"
-          onClick={() => setIsOpen(true)}
-        >
-          <Plus size={16} style={{ marginRight: '0.5rem' }} />
-          Adicionar Paciente
-        </button>
-      </div>
-
+      <div className="actions-bar"><button className="btn btn-success" onClick={() => setIsOpen(true)}><Plus size={16} /> Adicionar Paciente</button></div>
       <div className="table-container">
         <table className="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>Email</th>
-              <th>Tipo Sanguíneo</th>
-              <th style={{ textAlign: 'right' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="empty-state">
-                  Nenhum paciente cadastrado
-                </td>
-              </tr>
-            ) : (
-              patients.map((patient) => (
-                <tr key={patient._id}>
-                  <td>{patient.nome}</td>
-                  <td>{patient.cpf}</td>
-                  <td>{patient.email}</td>
-                  <td>{patient.tipoSang}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        className="btn-ghost btn-icon btn-edit"
-                        onClick={() => handleEdit(patient)}
-                        title="Editar"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        className="btn-ghost btn-icon btn-delete"
-                        onClick={() => handleDelete(patient._id)}
-                        title="Excluir"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Email</th><th>Sangue</th><th style={{ textAlign: 'right' }}>Ações</th></tr></thead>
+          <tbody>{patients.map(p => (<tr key={p._id}><td>{p.nome}</td><td>{p.cpf}</td><td>{p.email}</td><td>{p.tipoSang}</td><td><div className="table-actions"><button className="btn-ghost btn-icon" onClick={() => handleEdit(p)}><Pencil size={16} /></button><button className="btn-ghost btn-icon" onClick={() => handleDelete(p._id)}><Trash2 size={16} /></button></div></td></tr>))}</tbody>
         </table>
       </div>
-
-      {/* Modal */}
-      <div className={`modal-overlay ${isOpen ? '' : 'hidden'}`} onClick={() => { setIsOpen(false); resetForm(); }}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2 className="modal-title">
-              {editingPatient ? 'Editar Paciente' : 'Novo Paciente'}
-            </h2>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label htmlFor="nome" className="label">Nome Completo</label>
-                  <input id="nome" type="text" className="input" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} required />
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => { setIsOpen(false); resetForm(); }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header"><h2 className="modal-title">{editingPatient ? 'Editar Paciente' : 'Novo Paciente'}</h2></div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group"><label className="label">Nome Completo</label><input className="input" value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">CPF</label><input className="input" value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Senha</label><input className="input" type="password" value={formData.senha} onChange={e => setFormData({ ...formData, senha: e.target.value })} required={!editingPatient} placeholder={editingPatient ? "Vazio para manter" : ""} /></div>
+                  <div className="form-group"><label className="label">Data Nasc.</label><input className="input" type="date" value={formData.dataNasc} onChange={e => setFormData({ ...formData, dataNasc: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Sangue</label><select className="select" value={formData.tipoSang} onChange={e => setFormData({ ...formData, tipoSang: e.target.value })}>{['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+                  <AddressForm endereco={formData.endereco} onChange={n => setFormData({ ...formData, endereco: n })} />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="cpf" className="label">CPF</label>
-                  <input id="cpf" type="text" className="input" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email" className="label">Email</label>
-                  <input id="email" type="email" className="input" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="senha" className="label">Senha de Acesso</label>
-                  <input id="senha" type="password" className="input" value={formData.senha} onChange={(e) => setFormData({ ...formData, senha: e.target.value })} required={!editingPatient} placeholder={editingPatient ? 'Deixe em branco para não alterar' : ''} />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="dataNasc" className="label">Data de Nascimento</label>
-                  <input id="dataNasc" type="date" className="input" value={formData.dataNasc} onChange={(e) => setFormData({ ...formData, dataNasc: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="telefone" className="label">Telefone</label>
-                  <input id="telefone" type="tel" className="input" value={formData.telefone} onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="tipoSang" className="label">Tipo Sanguíneo</label>
-                  <select id="tipoSang" className="select" value={formData.tipoSang} onChange={(e) => setFormData({ ...formData, tipoSang: e.target.value })}>
-                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                {/* --- ENDEREÇO --- */}
-                <div className="form-group form-group-full">
-                  <h3 style={{ marginBottom: '15px', color: '#1B5E20', fontSize: '16px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>
-                    Endereço
-                  </h3>
-                  <div className="form-grid" style={{ marginTop: '10px' }}>
-                    <div className="form-group">
-                      <label htmlFor="cep" className="label">CEP</label>
-                      <input id="cep" type="text" className="input" value={formData.endereco.cep} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cep: e.target.value } })} required />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="estado" className="label">Estado (UF)</label>
-                      <input id="estado" type="text" className="input" maxLength="2" placeholder="Ex: MG" value={formData.endereco.estado} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, estado: e.target.value } })} required />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="cidade" className="label">Cidade</label>
-                      <input id="cidade" type="text" className="input" value={formData.endereco.cidade} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cidade: e.target.value } })} required />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="bairro" className="label">Bairro</label>
-                      <input id="bairro" type="text" className="input" value={formData.endereco.bairro} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, bairro: e.target.value } })} required />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="rua" className="label">Rua</label>
-                      <input id="rua" type="text" className="input" value={formData.endereco.rua} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, rua: e.target.value } })} required />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="numero" className="label">Número</label>
-                      <input id="numero" type="text" className="input" value={formData.endereco.numero} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, numero: e.target.value } })} required />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => { setIsOpen(false); resetForm(); }}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-success">
-                  {editingPatient ? 'Atualizar' : 'Cadastrar'}
-                </button>
-              </div>
-            </form>
+                <div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => { setIsOpen(false); resetForm(); }}>Cancelar</button><button type="submit" className="btn btn-success">Salvar</button></div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
+/* --- ABA MÉDICOS --- */
 const DoctorsTab = () => {
   const [doctors, setDoctors] = useState([]);
-
-  const fetchDoctors = async () => {
-    try {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      const response = await fetch('http://localhost:3001/medicos', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setDoctors(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar médicos:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchDoctors();
-  }, []);
-
   const [isOpen, setIsOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState({
-    nome: '',
-    cpf: '',
-    email: '',
-    senha: '',
-    dataNasc: '',
-    telefone: '',
-    uf: '',
-    crm: '',
-    especialidade: '',
-    descricao: '',
-    endereco: { 
-      estado: '',
-      cidade: '',
-      bairro: '',
-      rua: '',
-      cep: '',
-      numero: ''
-    }
+    nome: '', cpf: '', email: '', senha: '', dataNasc: '', telefone: '', uf: '', crm: '', especialidade: '', descricao: '',
+    endereco: { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' }
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const storedUser = localStorage.getItem('@Clinica:user');
-    const token = storedUser ? JSON.parse(storedUser).token : '';
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-
-    const payload = {
-      ...formData,
-      telefone: Number(formData.telefone),
-      crm: Number(formData.crm),
-      endereco: {
-        ...formData.endereco,
-        numero: Number(formData.endereco.numero)
-      }
-    };
-
+  const fetchDoctors = useCallback(async () => {
     try {
-      if (editingDoctor) {
-        const response = await fetch('http://localhost:3001/medicos', {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ ...payload, id: editingDoctor._id, id_medic: editingDoctor._id })
-        });
-        if (response.ok) alert('Médico atualizado com sucesso!');
-      } else {
-        const response = await fetch('http://localhost:3001/medicos', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload)
-        });
-        if (response.ok) alert('Médico cadastrado com sucesso!');
-      }
-      fetchDoctors();
-    }
-    catch (error) { console.error(error); }
-    setIsOpen(false);
-    resetForm();
-  };
+      const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token;
+      const res = await fetch('http://localhost:3001/medicos', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) setDoctors(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
 
-  const resetForm = () => {
-    setFormData({
-    nome: '',
-    cpf: '',
-    email: '',
-    senha: '',
-    dataNasc: '',
-    telefone: '',
-    uf: '',
-    crm: '',
-    especialidade: '',
-    descricao: '',
-    endereco: { 
-      estado: '',
-      cidade: '',
-      bairro: '',
-      rua: '',
-      cep: '',
-      numero: ''
-    }
-    });
-    setEditingDoctor(null);
-  };
+  useEffect(() => { fetchDoctors(); }, [fetchDoctors]);
 
-  const handleEdit = (doctor) => {
-    setEditingDoctor(doctor);
-    setFormData(doctor);
+  const handleEdit = (d) => {
+    setEditingDoctor(d);
+    setFormData({ ...d, dataNasc: d.dataNasc ? d.dataNasc.split('T')[0] : '', senha: '', endereco: d.endereco || { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' } });
     setIsOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este médico?')) {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      try {
-        const response = await fetch('http://localhost:3001/medicos', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ id })
-        });
-        if (response.ok) {
-          alert('Médico excluído com sucesso!');
-          fetchDoctors();
-        }
-      } catch (error) { console.error(error); }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const authData = JSON.parse(localStorage.getItem('@Clinica:user'));
+    const token = authData?.token || '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    const payload = { ...formData, telefone: Number(formData.telefone), crm: Number(formData.crm) };
+    if (editingDoctor) {
+      payload.id_medic = editingDoctor._id;
+      if (authData?.role === 'admin') payload.id_admin = authData.id;
+      else payload.id_recep = authData.id;
+      await fetch('http://localhost:3001/medicos', { method: 'PUT', headers, body: JSON.stringify(payload) });
+    } else {
+      await fetch('http://localhost:3001/medicos', { method: 'POST', headers, body: JSON.stringify(payload) });
     }
+    fetchDoctors(); setIsOpen(false); setEditingDoctor(null);
   };
 
   return (
     <div>
-      <div className="actions-bar">
-        <button className="btn btn-success" onClick={() => setIsOpen(true)}>
-          <Plus size={16} style={{ marginRight: '0.5rem' }} />
-          Adicionar Médico
-        </button>
-      </div>
-
+      <div className="actions-bar"><button className="btn btn-success" onClick={() => setIsOpen(true)}><Plus size={16} /> Adicionar Médico</button></div>
       <div className="table-container">
         <table className="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CRM</th>
-              <th>Especialidade</th>
-              <th style={{ textAlign: 'right' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doctors.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="empty-state">Nenhum médico cadastrado</td>
-              </tr>
-            ) : (
-              doctors.map((doctor) => (
-                <tr key={doctor._id}>
-                  <td>{doctor.nome}</td>
-                  <td>{doctor.crm}</td>
-                  <td>{doctor.especialidade}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button className="btn-ghost btn-icon btn-edit" onClick={() => handleEdit(doctor)} title="Editar">
-                        <Pencil size={16} />
-                      </button>
-                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(doctor._id)} title="Excluir">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
+          <thead><tr><th>Nome</th><th>CRM</th><th>Especialidade</th><th style={{ textAlign: 'right' }}>Ações</th></tr></thead>
+          <tbody>{doctors.map(d => (<tr key={d._id}><td>{d.nome}</td><td>{d.crm}</td><td>{d.especialidade}</td><td><div className="table-actions"><button className="btn-ghost btn-icon" onClick={() => handleEdit(d)}><Pencil size={16} /></button><button className="btn-ghost btn-icon" onClick={async () => { if (window.confirm('Excluir?')) { const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token; await fetch('http://localhost:3001/medicos', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ id: d._id }) }); fetchDoctors(); } }}><Trash2 size={16} /></button></div></td></tr>))}</tbody>
         </table>
       </div>
-
-      <div className={`modal-overlay ${isOpen ? '' : 'hidden'}`} onClick={() => { setIsOpen(false); resetForm(); }}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2 className="modal-title">{editingDoctor ? 'Editar Médico' : 'Novo Médico'}</h2>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label htmlFor="nome" className="label">Nome Completo</label>
-                  <input id="nome" type="text" className="input" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} required />
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header"><h2 className="modal-title">{editingDoctor ? 'Editar Médico' : 'Novo Médico'}</h2></div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group"><label className="label">Nome</label><input className="input" value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">CPF</label><input className="input" value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Senha</label><input className="input" type="password" value={formData.senha} onChange={e => setFormData({ ...formData, senha: e.target.value })} required={!editingDoctor} /></div>
+                  <div className="form-group"><label className="label">Data Nasc.</label><input className="input" type="date" value={formData.dataNasc} onChange={e => setFormData({ ...formData, dataNasc: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">UF (Conselho)</label><input className="input" maxLength="2" value={formData.uf} onChange={e => setFormData({ ...formData, uf: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">CRM</label><input className="input" value={formData.crm} onChange={e => setFormData({ ...formData, crm: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Especialidade</label><input className="input" value={formData.especialidade} onChange={e => setFormData({ ...formData, especialidade: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Descrição</label><input className="input" value={formData.descricao} onChange={e => setFormData({ ...formData, descricao: e.target.value })} /></div>
+                  <AddressForm endereco={formData.endereco} onChange={n => setFormData({ ...formData, endereco: n })} />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="cpf" className="label">CPF</label>
-                  <input id="cpf" type="text" className="input" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email" className="label">Email</label>
-                  <input id="email" type="email" className="input" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="senha" className="label">Senha</label>
-                  <input id="senha" type="password" className="input" value={formData.senha} onChange={(e) => setFormData({ ...formData, senha: e.target.value })} required={!editingDoctor} />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="dataNasc" className="label">Data Nasc.</label>
-                  <input id="dataNasc" type="date" className="input" value={formData.dataNasc} onChange={(e) => setFormData({ ...formData, dataNasc: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="telefone" className="label">Telefone</label>
-                  <input id="telefone" type="tel" className="input" value={formData.telefone} onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="uf" className="label">UF (Conselho)</label>
-                  <input id="uf" type="text" className="input" maxLength="2" value={formData.uf} onChange={(e) => setFormData({ ...formData, uf: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="crm" className="label">CRM</label>
-                  <input id="crm" type="text" className="input" value={formData.crm} onChange={(e) => setFormData({ ...formData, crm: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="especialidade" className="label">Especialidade</label>
-                  <input id="especialidade" type="text" className="input" value={formData.especialidade} onChange={(e) => setFormData({ ...formData, especialidade: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="descricao" className="label">Descrição</label>
-                  <input id="descricao" type="text" className="input" value={formData.descricao} onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} />
-                </div>
-
-                {/* ENDEREÇO (Igual para todos) */}
-                <div className="form-group form-group-full">
-                  <h3 style={{ marginBottom: '15px', color: '#1B5E20', fontSize: '16px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>Endereço</h3>
-                  <div className="form-grid" style={{ marginTop: '10px' }}>
-                    <div className="form-group"><label className="label">CEP</label><input type="text" className="input" value={formData.endereco.cep} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cep: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Estado (UF)</label><input type="text" className="input" maxLength="2" placeholder="Ex: MG" value={formData.endereco.estado} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, estado: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Cidade</label><input type="text" className="input" value={formData.endereco.cidade} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cidade: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Bairro</label><input type="text" className="input" value={formData.endereco.bairro} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, bairro: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Rua</label><input type="text" className="input" value={formData.endereco.rua} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, rua: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Número</label><input type="text" className="input" value={formData.endereco.numero} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, numero: e.target.value } })} required /></div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => { setIsOpen(false); resetForm(); }}>Cancelar</button>
-                <button type="submit" className="btn btn-success">{editingDoctor ? 'Atualizar' : 'Cadastrar'}</button>
-              </div>
-            </form>
+                <div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setIsOpen(false)}>Cancelar</button><button type="submit" className="btn btn-success">Salvar</button></div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-
-
-
+/* --- ABA ENFERMEIROS --- */
 const NursesTab = () => {
   const [nurses, setNurses] = useState([]);
-
-  const fetchNurses = async () => {
-    try {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      const response = await fetch('http://localhost:3001/enfermeiros', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNurses(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar enfermeiros:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchNurses();
-  }, []);
-
   const [isOpen, setIsOpen] = useState(false);
   const [editingNurse, setEditingNurse] = useState(null);
   const [formData, setFormData] = useState({
-    nome: '',
-    cpf: '',
-    email: '',
-    senha: '',
-    dataNasc: '',
-    telefone: '',
-    uf: '',
-    coren: '',
-    endereco: { 
-      estado: '',
-      cidade: '',
-      bairro: '',
-      rua: '',
-      cep: '',
-      numero: ''
-    }
+    nome: '', cpf: '', email: '', senha: '', dataNasc: '', telefone: '', uf: '', coren: '',
+    endereco: { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' }
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const storedUser = localStorage.getItem('@Clinica:user');
-    const token = storedUser ? JSON.parse(storedUser).token : '';
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-
-    // Pacote com a "gambiarra" para o backend da enfermeira aceitar
-    const payload = {
-      ...formData,
-      telefone: Number(formData.telefone),
-      coren: Number(formData.coren)
-    };
-
+  const fetchNurses = useCallback(async () => {
     try {
-      if (editingNurse) {
-        const response = await fetch('http://localhost:3001/enfermeiros', {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ ...payload, id: editingNurse._id })
-        });
-        if (response.ok) alert('Enfermeiro atualizado com sucesso!');
-      } else {
-        const response = await fetch('http://localhost:3001/enfermeiros', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload)
-        });
-        if (response.ok) alert('Enfermeiro cadastrado com sucesso!');
-      }
-      fetchNurses();
-    } catch (error) { console.error(error); }
-    setIsOpen(false);
-    resetForm();
-  };
+      const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token;
+      const res = await fetch('http://localhost:3001/enfermeiros', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) setNurses(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
 
-  const resetForm = () => {
-    setFormData({ 
-      nome: '',
-      cpf: '',
-      email: '',
-      senha: '',
-      dataNasc: '',
-      telefone: '',
-      uf: '',
-      coren: '',
-      endereco: {
-        estado: '',
-        cidade: '',
-        bairro: '',
-        rua: '',
-        cep: '',
-        numero: ''
-      }
-    });
-    setEditingNurse(null);
-  };
+  useEffect(() => { fetchNurses(); }, [fetchNurses]);
 
-  const handleEdit = (nurse) => {
-    setEditingNurse(nurse);
-    setFormData(nurse);
+  const handleEdit = (n) => {
+    setEditingNurse(n);
+    setFormData({ ...n, dataNasc: n.dataNasc ? n.dataNasc.split('T')[0] : '', senha: '', endereco: n.endereco || { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' } });
     setIsOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este enfermeiro?')) {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      try {
-        const response = await fetch('http://localhost:3001/enfermeiros', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ id })
-        });
-        if (response.ok) {
-          alert('Enfermeiro excluído com sucesso!');
-          fetchNurses();
-        }
-      } catch (error) { console.error(error); }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const authData = JSON.parse(localStorage.getItem('@Clinica:user'));
+    const token = authData?.token || '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    const payload = { ...formData, telefone: Number(formData.telefone), coren: Number(formData.coren) };
+    if (editingNurse) {
+      payload.id_enfer = editingNurse._id;
+      if (authData?.role === 'admin') payload.id_admin = authData.id;
+      else payload.id_recep = authData.id;
+      await fetch('http://localhost:3001/enfermeiros', { method: 'PUT', headers, body: JSON.stringify(payload) });
+    } else {
+      await fetch('http://localhost:3001/enfermeiros', { method: 'POST', headers, body: JSON.stringify(payload) });
     }
+    fetchNurses(); setIsOpen(false); setEditingNurse(null);
   };
 
   return (
     <div>
-      <div className="actions-bar">
-        <button className="btn btn-success" onClick={() => setIsOpen(true)}>
-          <Plus size={16} style={{ marginRight: '0.5rem' }} />
-          Adicionar Enfermeiro
-        </button>
-      </div>
-
+      <div className="actions-bar"><button className="btn btn-success" onClick={() => setIsOpen(true)}><Plus size={16} /> Adicionar Enfermeiro</button></div>
       <div className="table-container">
         <table className="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>COREN</th>
-              <th>Telefone</th>
-              <th style={{ textAlign: 'right' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {nurses.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="empty-state">Nenhum enfermeiro cadastrado</td>
-              </tr>
-            ) : (
-              nurses.map((nurse) => (
-                <tr key={nurse._id}>
-                  <td>{nurse.nome}</td>
-                  <td>{nurse.coren}</td>
-                  <td>{nurse.telefone}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button className="btn-ghost btn-icon btn-edit" onClick={() => handleEdit(nurse)} title="Editar">
-                        <Pencil size={16} />
-                      </button>
-                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(nurse._id)} title="Excluir">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
+          <thead><tr><th>Nome</th><th>COREN</th><th>Telefone</th><th style={{ textAlign: 'right' }}>Ações</th></tr></thead>
+          <tbody>{nurses.map(n => (<tr key={n._id}><td>{n.nome}</td><td>{n.coren}</td><td>{n.telefone}</td><td><div className="table-actions"><button className="btn-ghost btn-icon" onClick={() => handleEdit(n)}><Pencil size={16} /></button><button className="btn-ghost btn-icon" onClick={async () => { if (window.confirm('Excluir?')) { const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token; await fetch('http://localhost:3001/enfermeiros', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ id: n._id }) }); fetchNurses(); } }}><Trash2 size={16} /></button></div></td></tr>))}</tbody>
         </table>
       </div>
-
-      <div className={`modal-overlay ${isOpen ? '' : 'hidden'}`} onClick={() => { setIsOpen(false); resetForm(); }}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2 className="modal-title">{editingNurse ? 'Editar Enfermeiro' : 'Novo Enfermeiro'}</h2>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="form-grid">
-                {/* CAMPOS BASE DA CLASSE USUARIO */}
-                <div className="form-group"><label className="label">Nome Completo</label><input type="text" className="input" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">CPF</label><input type="text" className="input" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">Email</label><input type="email" className="input" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">Senha</label><input type="password" className="input" value={formData.senha} onChange={(e) => setFormData({ ...formData, senha: e.target.value })} required={!editingNurse} /></div>
-                <div className="form-group"><label className="label">Data Nasc.</label><input type="date" className="input" value={formData.dataNasc} onChange={(e) => setFormData({ ...formData, dataNasc: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">Telefone</label><input type="tel" className="input" value={formData.telefone} onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} required /></div>
-                
-                {/* CAMPOS ESPECÍFICOS ENFERMEIRO */}
-                <div className="form-group"><label className="label">UF (Conselho)</label><input type="text" className="input" maxLength="2" value={formData.uf} onChange={(e) => setFormData({ ...formData, uf: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">COREN</label><input type="text" className="input" value={formData.coren} onChange={(e) => setFormData({ ...formData, coren: e.target.value })} required /></div>
-
-                {/* ENDEREÇO */}
-                <div className="form-group form-group-full">
-                  <h3 style={{ marginBottom: '15px', color: '#1B5E20', fontSize: '16px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>Endereço</h3>
-                  <div className="form-grid" style={{ marginTop: '10px' }}>
-                    <div className="form-group"><label className="label">CEP</label><input type="text" className="input" value={formData.endereco.cep} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cep: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Estado (UF)</label><input type="text" className="input" maxLength="2" placeholder='Ex: MG' value={formData.endereco.estado} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, estado: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Cidade</label><input type="text" className="input" value={formData.endereco.cidade} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cidade: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Bairro</label><input type="text" className="input" value={formData.endereco.bairro} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, bairro: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Rua</label><input type="text" className="input" value={formData.endereco.rua} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, rua: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Número</label><input type="text" className="input" value={formData.endereco.numero} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, numero: e.target.value } })} required /></div>
-                  </div>
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header"><h2 className="modal-title">{editingNurse ? 'Editar Enfermeiro' : 'Novo Enfermeiro'}</h2></div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group"><label className="label">Nome</label><input className="input" value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">CPF</label><input className="input" value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Senha</label><input className="input" type="password" value={formData.senha} onChange={e => setFormData({ ...formData, senha: e.target.value })} required={!editingNurse} /></div>
+                  <div className="form-group"><label className="label">Data Nasc.</label><input className="input" type="date" value={formData.dataNasc} onChange={e => setFormData({ ...formData, dataNasc: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">UF</label><input className="input" maxLength="2" value={formData.uf} onChange={e => setFormData({ ...formData, uf: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">COREN</label><input className="input" value={formData.coren} onChange={e => setFormData({ ...formData, coren: e.target.value })} required /></div>
+                  <AddressForm endereco={formData.endereco} onChange={n => setFormData({ ...formData, endereco: n })} />
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => { setIsOpen(false); resetForm(); }}>Cancelar</button>
-                <button type="submit" className="btn btn-success">{editingNurse ? 'Atualizar' : 'Cadastrar'}</button>
-              </div>
-            </form>
+                <div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setIsOpen(false)}>Cancelar</button><button type="submit" className="btn btn-success">Salvar</button></div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
+/* --- ABA RECEPCIONISTAS --- */
 const ReceptionistsTab = () => {
   const [receptionists, setReceptionists] = useState([]);
-
-  const fetchReceptionists = async () => {
-    try {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      const response = await fetch('http://localhost:3001/recepcionistas', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setReceptionists(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar recepcionistas:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchReceptionists();
-  }, []);
-
   const [isOpen, setIsOpen] = useState(false);
   const [editingReceptionist, setEditingReceptionist] = useState(null);
   const [formData, setFormData] = useState({
-    nome: '',
-    cpf: '',
-    email: '',
-    senha: '',
-    dataNasc: '',
-    telefone: '',
-    turno: 'Manhã', // Valor padrão para o select
-    endereco: {
-      estado: '',
-      cidade: '',
-      bairro: '',
-      rua: '',
-      cep: '',
-      numero: ''
-    }
+    nome: '', cpf: '', email: '', senha: '', dataNasc: '', telefone: '', turno: 'Manhã',
+    endereco: { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' }
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const storedUser = localStorage.getItem('@Clinica:user');
-    const token = storedUser ? JSON.parse(storedUser).token : '';
-    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-
+  const fetchReceptionists = useCallback(async () => {
     try {
-      if (editingReceptionist) {
-        const response = await fetch('http://localhost:3001/recepcionistas', {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ ...formData, id: editingReceptionist._id })
-        });
-        if (response.ok) alert('Recepcionista atualizado com sucesso!');
-      } else {
-        const response = await fetch('http://localhost:3001/recepcionistas', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(formData)
-        });
-        if (response.ok) alert('Recepcionista cadastrado com sucesso!');
-      }
-      fetchReceptionists();
-    }
-    catch (error) { console.error(error); }
-    setIsOpen(false);
-    resetForm();
-  };
+      const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token;
+      const res = await fetch('http://localhost:3001/recepcionistas', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) setReceptionists(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
 
-  const resetForm = () => {
-    setFormData({
-      nome: '',
-      cpf: '',
-      email: '',
-      senha: '',
-      dataNasc: '',
-      telefone: '',
-      turno: 'Manhã',
-      endereco: {
-        estado: '',
-        cidade: '',
-        bairro: '',
-        rua: '',
-        cep: '',
-        numero: ''
-      }
-    });
-    setEditingReceptionist(null);
-  };
+  useEffect(() => { fetchReceptionists(); }, [fetchReceptionists]);
 
-  const handleEdit = (receptionist) => {
-    setEditingReceptionist(receptionist);
-    setFormData(receptionist);
+  const handleEdit = (r) => {
+    setEditingReceptionist(r);
+    setFormData({ ...r, dataNasc: r.dataNasc ? r.dataNasc.split('T')[0] : '', senha: '', endereco: r.endereco || { estado: '', cidade: '', bairro: '', rua: '', cep: '', numero: '' } });
     setIsOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este recepcionista?')) {
-      const storedUser = localStorage.getItem('@Clinica:user');
-      const token = storedUser ? JSON.parse(storedUser).token : '';
-      try {
-        const response = await fetch('http://localhost:3001/recepcionistas', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ id })
-        });
-        if (response.ok) {
-          alert('Recepcionista excluído com sucesso!');
-          fetchReceptionists();
-        }
-      } catch (error) { console.error(error); }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const authData = JSON.parse(localStorage.getItem('@Clinica:user'));
+    const token = authData?.token || '';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+    const payload = { ...formData };
+    if (editingReceptionist) {
+      payload.id_recep = editingReceptionist._id;
+      if (authData?.role === 'admin') payload.id_admin = authData.id;
+      else payload.id_recep_m = authData.id;
+      await fetch('http://localhost:3001/recepcionistas', { method: 'PUT', headers, body: JSON.stringify(payload) });
+    } else {
+      await fetch('http://localhost:3001/recepcionistas', { method: 'POST', headers, body: JSON.stringify(payload) });
     }
+    fetchReceptionists(); setIsOpen(false); setEditingReceptionist(null);
   };
 
   return (
     <div>
-      <div className="actions-bar">
-        <button className="btn btn-success" onClick={() => setIsOpen(true)}>
-          <Plus size={16} style={{ marginRight: '0.5rem' }} />
-          Adicionar Recepcionista
-        </button>
-      </div>
-
+      <div className="actions-bar"><button className="btn btn-success" onClick={() => setIsOpen(true)}><Plus size={16} /> Adicionar Recepcionista</button></div>
       <div className="table-container">
         <table className="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>Telefone</th>
-              <th style={{ textAlign: 'right' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {receptionists.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="empty-state">Nenhum recepcionista cadastrado</td>
-              </tr>
-            ) : (
-              receptionists.map((receptionist) => (
-                <tr key={receptionist._id}>
-                  <td>{receptionist.nome}</td>
-                  <td>{receptionist.cpf}</td>
-                  <td>{receptionist.telefone}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button className="btn-ghost btn-icon btn-edit" onClick={() => handleEdit(receptionist)} title="Editar">
-                        <Pencil size={16} />
-                      </button>
-                      <button className="btn-ghost btn-icon btn-delete" onClick={() => handleDelete(receptionist._id)} title="Excluir">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Turno</th><th style={{ textAlign: 'right' }}>Ações</th></tr></thead>
+          <tbody>{receptionists.map(r => (<tr key={r._id}><td>{r.nome}</td><td>{r.cpf}</td><td>{r.turno}</td><td><div className="table-actions"><button className="btn-ghost btn-icon" onClick={() => handleEdit(r)}><Pencil size={16} /></button><button className="btn-ghost btn-icon" onClick={async () => { if (window.confirm('Excluir?')) { const token = JSON.parse(localStorage.getItem('@Clinica:user'))?.token; await fetch('http://localhost:3001/recepcionistas', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ id: r._id }) }); fetchReceptionists(); } }}><Trash2 size={16} /></button></div></td></tr>))}</tbody>
         </table>
       </div>
-
-      <div className={`modal-overlay ${isOpen ? '' : 'hidden'}`} onClick={() => { setIsOpen(false); resetForm(); }}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2 className="modal-title">{editingReceptionist ? 'Editar Recepcionista' : 'Novo Recepcionista'}</h2>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="form-grid">
-                {/* CAMPOS BASE DA CLASSE USUARIO */}
-                <div className="form-group"><label className="label">Nome Completo</label><input type="text" className="input" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">CPF</label><input type="text" className="input" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">Email</label><input type="email" className="input" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">Senha</label><input type="password" className="input" value={formData.senha} onChange={(e) => setFormData({ ...formData, senha: e.target.value })} required={!editingReceptionist} /></div>
-                <div className="form-group"><label className="label">Data Nasc.</label><input type="date" className="input" value={formData.dataNasc} onChange={(e) => setFormData({ ...formData, dataNasc: e.target.value })} required /></div>
-                <div className="form-group"><label className="label">Telefone</label><input type="tel" className="input" value={formData.telefone} onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} required /></div>
-                
-                {/* CAMPOS ESPECÍFICOS RECEPCIONISTA */}
-                <div className="form-group">
-                  <label className="label">Turno</label>
-                  <select className="select" value={formData.turno} onChange={(e) => setFormData({ ...formData, turno: e.target.value })}>
-                    <option value="Manhã">Manhã</option>
-                    <option value="Tarde">Tarde</option>
-                    <option value="Noite">Noite</option>
-                  </select>
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header"><h2 className="modal-title">{editingReceptionist ? 'Editar Recepcionista' : 'Novo Recepcionista'}</h2></div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group"><label className="label">Nome</label><input className="input" value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">CPF</label><input className="input" value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Email</label><input className="input" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Senha</label><input className="input" type="password" value={formData.senha} onChange={e => setFormData({ ...formData, senha: e.target.value })} required={!editingReceptionist} /></div>
+                  <div className="form-group"><label className="label">Data Nasc.</label><input className="input" type="date" value={formData.dataNasc} onChange={e => setFormData({ ...formData, dataNasc: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Telefone</label><input className="input" value={formData.telefone} onChange={e => setFormData({ ...formData, telefone: e.target.value })} required /></div>
+                  <div className="form-group"><label className="label">Turno</label><select className="select" value={formData.turno} onChange={e => setFormData({ ...formData, turno: e.target.value })}><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option><option value="Noite">Noite</option></select></div>
+                  <AddressForm endereco={formData.endereco} onChange={n => setFormData({ ...formData, endereco: n })} />
                 </div>
-
-                {/* ENDEREÇO */}
-                <div className="form-group form-group-full">
-                  <h3 style={{ marginBottom: '15px', color: '#1B5E20', fontSize: '16px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>Endereço</h3>
-                  <div className="form-grid" style={{ marginTop: '10px' }}>
-                    <div className="form-group"><label className="label">CEP</label><input type="text" className="input" value={formData.endereco.cep} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cep: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Estado (UF)</label><input type="text" className="input" maxLength="2" placeholder='Ex: MG' value={formData.endereco.estado} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, estado: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Cidade</label><input type="text" className="input" value={formData.endereco.cidade} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, cidade: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Bairro</label><input type="text" className="input" value={formData.endereco.bairro} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, bairro: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Rua</label><input type="text" className="input" value={formData.endereco.rua} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, rua: e.target.value } })} required /></div>
-                    <div className="form-group"><label className="label">Número</label><input type="text" className="input" value={formData.endereco.numero} onChange={(e) => setFormData({ ...formData, endereco: { ...formData.endereco, numero: e.target.value } })} required /></div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => { setIsOpen(false); resetForm(); }}>Cancelar</button>
-                <button type="submit" className="btn btn-success">{editingReceptionist ? 'Atualizar' : 'Cadastrar'}</button>
-              </div>
-            </form>
+                <div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={() => setIsOpen(false)}>Cancelar</button><button type="submit" className="btn btn-success">Salvar</button></div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
