@@ -3,6 +3,7 @@ const Paciente = require('../../models/PacienteModel');
 const PacienteRepo = require('../../repositories/PacienteRepository');
 const Endereco = require('../../models/EnderecoModel');
 const RecepcionistaRepo = require('../../repositories/RecepcionistaRepository');
+const AdminRepo = require('../../repositories/AdminRepository');
 
 module.exports = {
 
@@ -82,17 +83,22 @@ module.exports = {
 
     async update(req, res) {
         try {
-            const { nome, cpf, email, senha , dataNasc, endereco, telefone, tipoSang, id_recep, id_paci } = req.body;
+            const { nome, cpf, email, senha , dataNasc, endereco, telefone, tipoSang, id_recep, id_paci, id_admin } = req.body;
             const erros = [];
 
+            if(id_admin) {
+                if (!id_admin) return res.status(400).json({erro: "ID admin obrigatório"});
+                const admin = await AdminRepo.findById(id_admin);
+                if (!admin) erros.push("Admin não encontrado.");
+            } else {
+                if (!id_recep) return res.status(400).json({erro: "ID recepcionista obrigatório"});
+                const recepcionista = await RecepcionistaRepo.findById(id_recep);
+                if (!recepcionista) erros.push("Recepcionista não encontrado.");
+            }
+
             if (!id_paci) return res.status(400).json({ erro: "ID do paciente obrigatório" });
-            if (!id_recep) return res.status(400).json({ erro: "ID do recepcionista obrigatório" });
-
             const paciente = await PacienteRepo.findById(id_paci);
-            const recepcionista = await RecepcionistaRepo.findById(id_recep);
-
             if (!paciente) erros.push("Paciente não encontrado.");
-            if (!recepcionista) erros.push("Recepcionista não encontrado.");
 
             if (erros.length > 0) return res.status(404).json({ erros });
 

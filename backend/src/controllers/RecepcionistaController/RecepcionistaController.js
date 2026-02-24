@@ -1,6 +1,8 @@
+const bcryptjs = require('bcryptjs');
 const Recepcionista = require('../../models/RecepcionistaModel');
 const Endereco = require('../../models/EnderecoModel');
 const RecepcionistaRepo = require('../../repositories/RecepcionistaRepository');
+const AdminRepo = require('../../repositories/AdminRepository');
 
 module.exports = {
 
@@ -76,6 +78,71 @@ module.exports = {
             res.status(200).json(recepcionista);
         } catch (error) {
             res.status(500).json({erro : error.message});
+        }
+    },
+
+    async update(req, res) {
+        try {
+            const { nome, cpf, email, senha, dataNasc, endereco, telefone, turno, id_recep_m, id_recep, id_admin } = req.body;
+            const erros = [];
+
+            if (id_recep_m === id_recep) return res.status(400).json({erro: "ID das recepicionistas devem ser diferentes!"});
+
+            if(id_admin) {
+                if (!id_admin) return res.status(400).json({erro: "ID admin obrigatório"});
+                const admin = await AdminRepo.findById(id_admin);
+                if (!admin) erros.push("Admin não encontrado.");
+            } else {
+                if (!id_recep_m) return res.status(400).json({erro: "ID recepcionista obrigatório"});
+                const recepcionista = await RecepcionistaRepo.findById(id_recep_m);
+                if (!recepcionista) erros.push("Recepcionista não encontrado.");
+            }
+
+            if (!id_recep) return res.status(400).json({erro: "ID recepcionista obrigatório"});
+            const recepcionista = await RecepcionistaRepo.findById(id_recep);
+            if (!recepcionista) erros.push("Recepcionista não encontrado.");
+
+            if (erros.length > 0) return res.status(404).json({ erros });
+
+            const dados = { nome, cpf, email, senha: senha || recepcionista.senha, dataNasc, endereco, telefone, turno };
+
+            const errosValidacao = Recepcionista.validarRecepcionista(dados);
+            if (errosValidacao.length > 0) erros.push(...errosValidacao);
+            
+            if (endereco) {
+                const errosEnd = Endereco.validarEndereco(endereco);
+                if (errosEnd.length > 0) erros.push(...errosEnd);
+            }
+
+            if (erros.length === 0) {
+                const usuarioExistente = await RecepcionistaRepo.findByCpfOrEmail(cpf, email);
+                
+                if (usuarioExistente) {
+                    if (String(usuarioExistente._id) !== String(id_recep)) {
+                        if (usuarioExistente.cpf === cpf) erros.push("Este CPF já está sendo usado por outro usuário.");
+                        if (usuarioExistente.email === email) erros.push("Este E-mail já está sendo usado por outro usuário.");
+                    }
+                }
+            }
+
+            if (erros.length > 0) {
+                return res.status(400).json({ erros });
+            }
+            
+            const dadosAtualizados = { 
+                nome, cpf, email, senha, dataNasc, endereco, telefone, turno
+            };
+            
+            if (senha) {
+                dadosAtualizados.senha = await bcryptjs.hash(senha, 8);
+            }
+
+            await RecepcionistaRepo.update(id_recep, dadosAtualizados);
+
+            res.status(200).json({ mensagem: "Recepicionista atualizado!" });
+
+        } catch (error) {
+            res.status(500).json({ erro: error.message});
         }
     },
 
