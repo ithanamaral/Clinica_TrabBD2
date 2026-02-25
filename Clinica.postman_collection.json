@@ -1,0 +1,1211 @@
+{
+	"info": {
+		"_postman_id": "a6ca50c0-3e4a-4439-b00d-9488a6c74b04",
+		"name": "Clinica",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "41280511"
+	},
+	"item": [
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"admin@clinica.com\",\r\n  \"senha\": \"admin123\",\r\n  \"tipo\": \"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:3001/login"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Recepção",
+			"item": [
+				{
+					"name": "Agendamentos",
+					"item": [
+						{
+							"name": "Create_Agendamentos",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"data\": \"25/12/2026\",\r\n  \"horario\": \"14:00\",\r\n  \"descricao\": \"Consulta de Rotina\",\r\n  \"status\": true,\r\n  \"id_recep\": \"69695841b1193522d47d7e76\",\r\n  \"id_medic\": \"69695936b1193522d47d7e78\",\r\n  \"id_paci\": \"696958c6b1193522d47d7e77\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/agendamento/recepcionista"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Agendamentos",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/agendamento/recepcionista"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Agendamentos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"6967b1a5ef0879ec00149a88\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/agendamento/recepcionista/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Agendamentos",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id_agend\": \"69990a71c6636753394aa239\",\r\n  \"data\": \"2026-02-21\",\r\n  \"descricao\": \"Exame de prostota v5\",\r\n  \"status\": true,\r\n  \"horario\": \"07:28\",\r\n  \"horarioFim\": \"08:28\",\r\n  \"id_medic\": \"69695936b1193522d47d7e78\",\r\n  \"id_paci\": \"6999024465e7b57cfdc49a77\",\r\n  \"id_recep\": \"6999015665e7b57cfdc49a75\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/agendamento/recepcionista"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Agendamentos",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"6994e5e59cb5ce99254b6ddf\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/agendamento/recepcionista"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cadastro (Pacientes)",
+					"item": [
+						{
+							"name": "Create_Pacientes",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"nome\": \"Íthan\",\r\n  \"cpf\": \"133.456.789-00\",\r\n  \"email\": \"ithanghaysilva@email.com\",\r\n  \"senha\": \"123\",\r\n  \"dataNasc\": \"1990-01-01\",\r\n  \"endereco\": {\r\n            \"estado\": \"MG\",\r\n            \"cidade\": \"Belo Horizonte\",\r\n            \"bairro\": \"Centro\",\r\n            \"rua\": \"Av. do Centro BH\",\r\n            \"cep\": \"12345-000\",\r\n            \"numero\": 101\r\n        },\r\n  \"telefone\": 99999999,\r\n  \"tipoSang\": \"O+\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/pacientes"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Pacientes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/pacientes"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Pacientes",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"6967affcef0879ec00149a86\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/pacientes/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Pacientes",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{    \r\n  \"id_paci\": \"6999024465e7b57cfdc49a77\",\r\n  //\"id_recep\": \"6999015665e7b57cfdc49a75\",\r\n  \"id_admin\": \"69690ccbff8ee71b29d43340\",\r\n  \"nome\": \"Íthan Amaral\",\r\n  \"cpf\": \"133.456.789-25\",\r\n  \"email\": \"ithanghaysilva@email.com\",\r\n  \"senha\": \"123\",\r\n  \"dataNasc\": \"1990-01-01\",\r\n  \"endereco\": {\r\n            \"estado\": \"MG\",\r\n            \"cidade\": \"Belo Horizonte\",\r\n            \"bairro\": \"Centro\",\r\n            \"rua\": \"Av. do Centro BH\",\r\n            \"cep\": \"12345-000\",\r\n            \"numero\": 101\r\n        },\r\n  \"telefone\": 99999999,\r\n  \"tipoSang\": \"O+\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/pacientes"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Pacientes",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"696976f1e55736f70350c4cd\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/pacientes"
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Cadastro (Médicos)",
+					"item": [
+						{
+							"name": "Create_Médicos",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nome\": \"Dr. Íthan\",\r\n    \"cpf\": \"111.222.333-24\",\r\n    \"email\": \"ithan@cldnica.com\",\r\n    \"senha\": \"123\",\r\n    \"dataNasc\": \"1970-05-15\",\r\n    \"endereco\": {\r\n            \"estado\": \"MG\",\r\n            \"cidade\": \"Belo Horizonte\",\r\n            \"bairro\": \"Centro\",\r\n            \"rua\": \"Av. do Centro BH\",\r\n            \"cep\": \"12345-000\",\r\n            \"numero\": 101\r\n        },\r\n    \"telefone\": 977777777,\r\n    \"uf\": \"NJ\",\r\n    \"crm\": \"12345-SP\",\r\n    \"especialidade\": \"Infectologista\",\r\n    \"descricao\": \"Chefe de Diagnóstico\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicos"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Médicos",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/medicos"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Médicos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"6967af74ef0879ec00149a82\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicos/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Médicos",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_medic\": \"69934f8632d79405c28bfa4a\",\r\n    //\"id_recep\": \"6999015665e7b57cfdc49a75\",\r\n    \"id_admin\": \"69690ccbff8ee71b29d43340\",\r\n    \"nome\": \"Dr. Roberto FTC\",\r\n    \"cpf\": \"304.015.560-18\",\r\n    \"tipoPerfil\": \"MEDICO\",\r\n    \"email\": \"robertoftc@email.com\",\r\n    \"senha\": \"12345678\",\r\n    \"dataNasc\": {\r\n        \"estado\": \"RJ\",\r\n        \"cidade\": \"Rio de Janeiro\",\r\n        \"bairro\": \"Cambariú\",\r\n        \"rua\": \"Avenida do Contorno\",\r\n        \"cep\": \"31985-053\",\r\n        \"numero\": 977777777\r\n    },\r\n    \"telefone\": \"RJ\",\r\n    \"endereco\": {\r\n        \"estado\": \"MG\",\r\n        \"cidade\": \"Belo Horizonte\",\r\n        \"bairro\": \"Centro\",\r\n        \"rua\": \"Av. do Centro BH\",\r\n        \"cep\": \"12345-000\",\r\n        \"numero\": 101\r\n    },\r\n    \"uf\": 85349,\r\n    \"crm\": \"Ginecologista\",\r\n    \"especialidade\": \"Cuidados da Mulher\",\r\n    \"descricao\": \"FTC\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicos"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Médicos",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"698eff104100607a8b0d7c3c\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicos"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cadastro (Enfermeiros)",
+					"item": [
+						{
+							"name": "Create_Enfermeiros",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nome\": \"Enfermeira Joy\",\r\n    \"cpf\": \"999.888.772-66\",\r\n    \"email\": \"jory@clinica.com\",\r\n    \"senha\": \"123\",\r\n    \"dataNasc\": \"1995-08-20\",\r\n    \"endereco\": {\r\n            \"estado\": \"Pokémon\",\r\n            \"cidade\": \"Pallet\",\r\n            \"bairro\": \"Centro\",\r\n            \"rua\": \"Av. do Centro Pokémon\",\r\n            \"cep\": \"12345-000\",\r\n            \"numero\": 101\r\n        },\r\n    \"telefone\": 966666666,\r\n    \"uf\": \"SP\",\r\n    \"coren\": 98765\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/enfermeiros"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Enfermeiros",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/enfermeiros"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Enfermeiros",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"6967afc7ef0879ec00149a84\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/enfermeiros/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Enfermeiros",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_enfer\": \"6999021b65e7b57cfdc49a76\",\r\n    \"id_recep\": \"6999015665e7b57cfdc49a75\",\r\n    //\"id_admin\": \"69690ccbff8ee71b29d43340\",\r\n    \"nome\": \"Enfermeira Joy\",\r\n    \"cpf\": \"999.888.772-78\",\r\n    \"email\": \"jory@clinica.com\",\r\n    \"senha\": \"123\",\r\n    \"dataNasc\": \"1995-08-20\",\r\n    \"endereco\": {\r\n            \"estado\": \"PK\",\r\n            \"cidade\": \"Pallet\",\r\n            \"bairro\": \"Centro\",\r\n            \"rua\": \"Av. do Centro Pokémon\",\r\n            \"cep\": \"12345-000\",\r\n            \"numero\": 101\r\n        },\r\n    \"telefone\": 966666666,\r\n    \"uf\": \"SP\",\r\n    \"coren\": 98765\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/enfermeiros"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Enfermeiros",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"698d36ad1726da494bb64fb9\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/enfermeiros"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cadastro (Recepcionistas)",
+					"item": [
+						{
+							"name": "Create_Recepcionistas",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nome\": \"Pam Beesly2\",\r\n    \"cpf\": \"555.444.333-25\",\r\n    \"email\": \"pnm@clinica.com\",\r\n    \"senha\": \"123\",\r\n    \"dataNasc\": \"1988-03-25\",\r\n    \"endereco\": {\r\n            \"estado\": \"PS\",\r\n            \"cidade\": \"Scrantom\",\r\n            \"bairro\": \"The\",\r\n            \"rua\": \"Office\",\r\n            \"cep\": \"35931-074\",\r\n            \"numero\": \"307\"\r\n        },\r\n    \"telefone\": 911112222,\r\n    \"turno\": \"Manhã\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/recepcionistas"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Recepcionistas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/recepcionistas"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Recepcionistas",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_RECEPCIONISTA\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/recepcionistas/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Recepicionista",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_recep\": \"699d0765e11a0c87ee21f771\",\r\n    //\"id_recep_m\": \"699d0765e11a0c87ee21f771\",\r\n    \"id_admin\": \"69690ccbff8ee71b29d43340\",\r\n    \"nome\": \"Pam beesly3\",\r\n    \"cpf\": \"555.444.333-25\",\r\n    \"email\": \"pnm@clinica.com\",\r\n    \"senha\": \"123\",\r\n    \"dataNasc\": \"1988-03-25\",\r\n    \"endereco\": {\r\n            \"estado\": \"PS\",\r\n            \"cidade\": \"Scrantom\",\r\n            \"bairro\": \"The\",\r\n            \"rua\": \"Office\",\r\n            \"cep\": \"35931-074\",\r\n            \"numero\": \"307\"\r\n        },\r\n    \"telefone\": 911112222,\r\n    \"turno\": \"Manhã\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/recepcionistas"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Recepcionistas",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"69695841b1193522d47d7e76\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/recepcionistas"
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": {
+					"token": "{{token}}"
+				}
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Enfermagem",
+			"item": [
+				{
+					"name": "Triagem",
+					"item": [
+						{
+							"name": "Create_Triagem",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"sinais_vitais\": \"PA 120/80, Temp 36.5\",\r\n    \"altura\": 1.75,\r\n    \"peso\": 80,\r\n    \"classificacao\": \"Verde\",\r\n    \"descricao\": \"Paciente sem queixas agudas\",\r\n    \"id_paci\": \"696958c6b1193522d47d7e77\",\r\n    \"id_enfer\": \"6969596ab1193522d47d7e79\",\r\n    \"id_agen\": \"696959a9b1193522d47d7e7a\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/enfermeiro"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Triagem",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/triagem/enfermeiro"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Triagem",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_TRIAGEM\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/enfermeiro/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Triagem",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_triag\": \"ID_DA_TRIAGEM\",\r\n    \"id_enfer\": \"ID_DO_ENFERMEIRO\",\r\n    \"sinais_vitais\": \"PA 130/85\",\r\n    \"altura\": 1.75,\r\n    \"peso\": 81,\r\n    \"classificacao\": \"Amarelo\",\r\n    \"descricao\": \"Paciente relatou tontura\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/enfermeiro"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Triagem",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"ID_DA_TRIAGEM\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/enfermeiro"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Estoque Medicamentos",
+					"item": [
+						{
+							"name": "Create_Medicamentos",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nome\": \"Dipirona 500mg\",\r\n    \"principio\": \"Metamizol Sódico\",\r\n    \"qnt_disp\": 100,\r\n    \"id_enfer\": \"6969596ab1193522d47d7e79\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicamentos"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Medicamentos",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/medicamentos"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Medicamentos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DO_MEDICAMENTO\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicamentos/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Medicamentos",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_medicam\": \"ID_DO_MEDICAMENTO\",\r\n    \"nome\": \"Dipirona 1g\",\r\n    \"principio\": \"Metamizol\",\r\n    \"qnt_disp\": 200\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicamentos"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Medicamentos",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"ID_DO_MEDICAMENTO\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicamentos"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Dispensa",
+					"item": [
+						{
+							"name": "Create_Dispensas",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_medicam\": \"69695a59b1193522d47d7e7c\",\r\n    \"quantidade\": 1,\r\n    \"id_paci\": \"696958c6b1193522d47d7e77\",\r\n    \"id_enfer\": \"6969596ab1193522d47d7e79\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/medicamentos/dispensar"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Dispensas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/medicamentos/dispensar"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Dispensas",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_DISPENSA\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/dispensas/buscar"
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": {
+					"token": "{{token}}"
+				}
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Médico",
+			"item": [
+				{
+					"name": "Agendamento",
+					"item": [
+						{
+							"name": "Create_Fechar_Agendamento",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_agend\": \"696959a9b1193522d47d7e7a\",\r\n    \"status\": false\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/agendamento/medico"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Agendamentos",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/agendamento/medico"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Agendamentos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"696959a9b1193522d47d7e7a\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/medico/buscar"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Triagem",
+					"item": [
+						{
+							"name": "List_Triagem",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/triagem/medico"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Triagem",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_TRIAGEM\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/medico/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Triagem",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_triag\": \"ID_DA_TRIAGEM\",\r\n    \"id_medic\": \"ID_DO_MEDICO\",\r\n    \"classificacao\": \"Vermelho\",\r\n    \"descricao\": \"Paciente piorou durante atendimento\",\r\n    \"sinais_vitais\": \"PA 180/100\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/triagem/medico"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Evolução (Prontuário)",
+					"item": [
+						{
+							"name": "Create_Evolucao",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"resumo\": \"Paciente apresenta quadro de gripe.\",\r\n    \"cid_prin\": \"J11\",\r\n    \"cid_secun\": \"R50\",\r\n    \"id_medic\": \"69695936b1193522d47d7e78\",\r\n    \"id_paci\": \"696958c6b1193522d47d7e77\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/evolucao"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Evolucao",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/evolucao"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Evolucao",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_EVOLUCAO\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/evolucao/buscar"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Evolucao",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_evolu\": \"ID_DA_EVOLUCAO\",\r\n    \"resumo\": \"Correção: Gripe forte.\",\r\n    \"cid_prin\": \"J10\",\r\n    \"cid_secun\": \"R52\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/evolucao"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Evolucao",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"ID_DA_EVOLUCAO\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/evolucao"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Receitas",
+					"item": [
+						{
+							"name": "Create_Receitas",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"descricao\": \"Dipirona 1g de 8 em 8 horas.\",\r\n    \"validade\": 30,\r\n    \"emissao\": \"2026-01-15\",\r\n    \"id_medic\": \"69695936b1193522d47d7e78\",\r\n    \"id_paci\": \"696958c6b1193522d47d7e77\",\r\n    \"id_evolu\": \"69695bc1b1193522d47d7e7e\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/receitas"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Receitas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/receitas"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Receitas",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_RECEITA\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/receitas"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Receitas",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_rece\": \"ID_DA_RECEITA\",\r\n    \"descricao\": \"Dipirona 500mg (Dose ajustada)\",\r\n    \"validade\": 15,\r\n    \"emissao\": \"2026-01-16\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/receitas"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Receitas",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DA_RECEITA\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/receitas"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Exames",
+					"item": [
+						{
+							"name": "Create_Receitas",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tipo_exame\": \"Hemograma Completo\",\r\n    \"arq_resultado\": \"pendente\",\r\n    \"status\": true,\r\n    \"id_medic\": \"69695936b1193522d47d7e78\",\r\n    \"id_paci\": \"696958c6b1193522d47d7e77\",\r\n    \"id_evolu\": \"69695bc1b1193522d47d7e7e\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/exames"
+							},
+							"response": []
+						},
+						{
+							"name": "List_Receitas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:3001/exames"
+							},
+							"response": []
+						},
+						{
+							"name": "Select_Receitas",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DO_PEDIDO_EXAME\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/exames"
+							},
+							"response": []
+						},
+						{
+							"name": "Update_Receitas",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id_exame\": \"ID_DO_PEDIDO_EXAME\",\r\n    \"tipo_exame\": \"Hemograma e Glicemia\",\r\n    \"arq_resultado\": \"resultado.pdf\",\r\n    \"status\": false\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/exames"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete_Receitas",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"id\": \"ID_DO_PEDIDO_EXAME\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "http://localhost:3001/exames"
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": {
+					"token": "{{token}}"
+				}
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}

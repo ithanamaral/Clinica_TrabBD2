@@ -1,0 +1,168 @@
+{}{}
+
+// PACIENTE
+{
+    "_id": "ObjectId('...')",
+    "nome": "Lucas Pereira",
+    "cpf": "999.999.999-99",
+    "email": "lucas@gmail.com",
+    "senha": "12345678",
+    "dataNasc": "2000-01-01",
+    "telefone": "31910101010",
+    "tipoSang": "O+",
+    "tipoPerfil": "PACIENTE",
+    "data_cadastro": "2026-02-24T10:00:00Z",
+    "endereco": { 
+        "estado": "MG",
+        "cidade": "Nova Era",
+        "bairro": "Serra",
+        "rua": "Rua Alto da Serra",
+        "cep": "35920-000",
+        "numero": 99
+    }
+}
+
+// MÉDICO
+{
+    "_id": "ObjectId('...')",
+    "nome": "Dr. Carlos Silva",
+    "cpf": "333.333.333-33",
+    "email": "carlos@clinica.com",
+    "senha": "12345678",
+    "dataNasc": "1975-02-15",
+    "telefone": "31933333333",
+    "uf": "MG",
+    "crm": "12345",
+    "especialidade": "Cardiologia",
+    "descricao": "Especialista em arritmias.",
+    "tipoPerfil": "MEDICO",
+    "data_cadastro": "2026-02-24T10:00:00Z",
+    "endereco": {
+        "estado": "MG",
+        "cidade": "Itabira",
+        "bairro": "Campestre",
+        "rua": "Rua das Margaridas",
+        "cep": "35900-000",
+        "numero": 10
+    }
+}
+
+// ENFERMEIRA
+{   
+    "_id": "ObjectId('...')",
+    "nome": "Enfermeira Joy",
+    "cpf": "999.888.772-66",
+    "email": "jory@clinica.com",
+    "senha": "12345678",
+    "dataNasc": "1995-08-20",
+    "endereco": {
+            "estado": "Pokémon",
+            "cidade": "Pallet",
+            "bairro": "Centro",
+            "rua": "Av. do Centro Pokémon",
+            "cep": "12345-000",
+            "numero": 101
+        },
+    "telefone": "31933333333",
+    "uf": "SP",
+    "coren": "98765"
+}
+
+// RECEPCIONISTA
+{   
+    "_id": "ObjectId('...')",
+    "nome": "Pam Beesly",
+    "cpf": "555.444.333-25",
+    "email": "pnm@clinica.com",
+    "senha": "12345678",
+    "dataNasc": "1988-03-25",
+    "endereco": {
+            "estado": "PS",
+            "cidade": "Scrantom",
+            "bairro": "The",
+            "rua": "Office",
+            "cep": "35931-074",
+            "numero": "307"
+        },
+    "telefone": "31933333333",
+    "turno": "Manhã"
+}
+
+
+// AGENDAMENTO
+{
+    "_id": "ObjectId('...')",
+    "data": "2026-03-01",
+    "horario": "08:00",
+    "horarioFim": "08:30",
+    "descricao": "Consulta de rotina cardiologia",
+    "status": true,
+    "data_criacao": "2026-02-24T10:00:00Z",
+    "Paciente_REF": "ObjectId('id_do_paciente')",
+    "Medico_REF": "ObjectId('id_do_medico')",
+    "Recepcionista_REF": "ObjectId('id_da_recepcionista')",
+    "dados_triagem": { 
+        "sinais_vitais": "PA: 120x80 mmHg",
+        "altura": 1.75,
+        "peso": 70.5,
+        "classificacao": "Verde",
+        "descricao_triagem": "Paciente relata desconforto leve",
+        "Enfermeiro_REF": "ObjectId('id_do_enfermeiro')"
+    }
+}
+
+
+
+
+
+// EVOLUCAO
+{
+    "_id": "ObjectId('...')",
+    "resumo": "Pressão arterial estabilizada. Manter medicação.",
+    "cid_prin": "I10",
+    "cid_secun": "",
+    "data": "2026-03-01T08:30:00Z",
+    "data_criacao": "2026-03-01T08:30:00Z",
+    "Medico_REF": "ObjectId('id_do_medico')",
+    "Paciente_REF": "ObjectId('id_do_paciente')",
+    "receitas_aninhadas": [
+        {
+        "descricao": "1. Losartana 50mg - Uso contínuo diário pela manhã.",
+        "validade": 180,
+        "emissao": "2026-03-01"
+        }
+    ],
+    "exames_pedidos": [
+        {
+        "tipo_exame": "Eletrocardiograma",
+        "status": true,
+        "arq_resultado": "resultado_ecg_lucas.pdf"
+        }
+    ]
+}
+
+
+
+
+// MEDICAMENTOS
+{
+    "_id": "ObjectId('...')",
+    "nome": "Dipirona 500mg",
+    "principio": "Metamizol",
+    "qnt_disp": 500,
+    "data_cadastro": "2026-02-24T10:00:00Z",
+    "Enfermeiro_REF": "ObjectId('id_do_enfermeiro')"
+}
+
+
+
+
+// DISPENSA
+{
+    "_id": "ObjectId('...')",
+    "quantidade": 30,
+    "data": "2026-03-01T09:00:00Z",
+    "Medicamento_REF": "ObjectId('id_do_medicamento')",
+    "Paciente_REF": "ObjectId('id_do_paciente')",
+    "Enfermeiro_REF": "ObjectId('id_do_enfermeiro')"
+}

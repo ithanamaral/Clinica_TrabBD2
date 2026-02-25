@@ -1,10 +1,146 @@
-# 🏥 Sistema de Gestão Clínica
+# ELO CARE - Sistema de Gestão Clínica
 
-Documentação funcional e técnica do sistema, incluindo **papéis dos usuários** e **rotas da API**.
+O ELO CARE é um Sistema de Banco de Dados não-relacional desenvolvido para otimizar a gestão de clínicas médicas. O foco central é a integração fluida entre recepção (agendamento), triagem (enfermagem), consulta (médico) e farmácia, garantindo que o histórico clínico do paciente seja centralizado e acessível em tempo real. 
+
+**Requisitos:** 
+- Controle de acesso por perfis (Admin, Médico, Enfermeiro, Recepcionista, Paciente).
+
+- Agendamento com trava de horários por médico.
+
+- Registro de triagem com sinais vitais e classificação de Manchester.
+
+- Evolução clínica com suporte a CID-10 e emissão de receitas.
+
+- Gestão de estoque de medicamentos e baixa automática na dispensa.
+
+- **Persistência estrita via Driver Nativo MongoDB**, sem uso de ORMs.
+
+---
+<br>
+
+## 🛠 Tecnologias Utilizadas
+
+O projeto foi construído sobre uma stack moderna, priorizando a separação de responsabilidades (MVC + Repository) e a manipulação direta do banco de dados NoSQL.
+
+### Backend
+
+* **Node.js & Express:** Ambiente de execução e framework para criação da API RESTful.
+* **Driver Nativo MongoDB (`mongodb`):** Utilizado exclusivamente para toda a comunicação com o SGB.
+* **JWT (JSON Web Token):** Gerenciamento de autenticação e sessões seguras.
+* **Bcryptjs:** Criptografia de senhas para persistência segura no banco de dados.
+* **Dotenv:** Gerenciamento de variáveis de ambiente e strings de conexão.
+
+### Frontend
+
+* **React.js:** Construção de uma interface reativa e dinâmica (SPA).
+* **Lucide React:** Conjunto de ícones para melhoria da experiência do usuário (UX).
+* **Context API:** Gerenciamento de estado global da aplicação e dados de login.
 
 ---
 
 <br>
+
+## 🏗 Arquitetura do Banco de Dados (NoSQL)
+
+A escolha pelo **MongoDB** justifica-se pela natureza dos dados clínicos. Prontuários e evoluções médicas são documentos semidestruturados onde a flexibilidade de campos (*schema-less*) permite que diferentes especialidades médicas armazenem informações específicas sem a necessidade de migrações complexas de esquemas relacionais.
+
+### Principais Coleções
+
+* `pacientes`: Dados demográficos e tipo sanguíneo.
+* `agendamentos`: Vínculos entre médico, paciente e horários.
+* `triagens`: Registro de sinais vitais vinculado ao agendamento.
+* `evolucoes`: Histórico clínico e diagnóstico (CID).
+* `medicamentos`: Controle de insumos e quantidades.
+
+---
+
+<br>
+
+## 🚀 Como Rodar o Sistema
+
+### Pré-requisitos
+
+* Node.js instalado (v16 ou superior).
+* Instância do MongoDB (Local ou Atlas).
+
+### 1. Configuração do Backend
+
+1. Navegue até a pasta `backend`.
+2. Instale as dependências:
+```bash
+npm install
+
+```
+
+
+3. Crie um arquivo `.env` na raiz do backend com as seguintes chaves:
+```env
+CONNECTIONSTRING=sua_uri_do_mongodb
+TOKEN_SECRET=uma_chave_aleatoria_segura
+PORT=3001
+
+```
+
+
+4. **Povoar o Banco (Seed):** Para testar com dados prontos, execute o script de povoamento:
+```bash
+node src/seed.js
+
+```
+
+
+5. Inicie o servidor:
+```bash
+npm run start
+
+```
+
+
+
+### 2. Configuração do Frontend
+
+1. Navegue até a pasta `frontend`.
+2. Instale as dependências:
+```bash
+npm install
+
+```
+
+
+3. Inicie a aplicação:
+```bash
+npm run dev
+
+```
+
+
+
+---
+<br>
+
+## 🔑 Credenciais de Teste (Padrão Seed)
+
+Após rodar o script `seed.js`, você pode utilizar os seguintes acessos (Senha padrão: `12345678`):
+
+| Perfil | E-mail |
+| --- | --- |
+| **Admin** | `admin@clinica.com` |
+| **Médico** | `carlos@clinica.com` |
+| **Enfermeiro** | `mariana@clinica.com` |
+| **Recepcionista** | `alice@clinica.com` |
+
+---
+
+## 📡 Endpoints da API (Postman Export)
+
+> **Instruções:** Importe o arquivo JSON *(Clinica.postman_collection.json)* da coleção do Postman para visualizar todos os parâmetros de requisição, headers de autenticação e exemplos de resposta de cada rota do sistema.
+
+
+<br>
+
+## Documentação funcional e técnica do sistema, incluindo **papéis dos usuários** e **rotas da API**.
+
+
 
 ## 👥 Perfis de Usuário
 
@@ -98,12 +234,9 @@ Documentação funcional e técnica do sistema, incluindo **papéis dos usuário
 
 ---
 <br>
-<br>
-<br>
 
-# 📚 Documentação de Rotas da API
+## 📚 Documentação de Rotas da API
 
----
 
 <details>
   <summary><strong>🔐 Autenticação (1)</strong></summary>
